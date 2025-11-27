@@ -1,15 +1,91 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertUserSchema, insertTradeSchema, insertDepositSchema, insertWithdrawalSchema } from "@shared/schema";
+import { randomUUID } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  // User endpoints
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const data = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(data.username);
+      if (existingUser) {
+        res.status(400).json({ error: "Username already exists" });
+        return;
+      }
+      const user = await storage.createUser(data);
+      res.json({ id: user.id, username: user.username, balance: user.balance });
+    } catch (error) {
+      res.status(400).json({ error: "Invalid request" });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/user/:id", async (req, res) => {
+    const user = await storage.getUser(req.params.id);
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    res.json({ id: user.id, username: user.username, balance: user.balance });
+  });
+
+  // Trade endpoints
+  app.post("/api/trades", async (req, res) => {
+    try {
+      const data = insertTradeSchema.parse(req.body);
+      const trade = await storage.createTrade(data);
+      res.json(trade);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid trade request" });
+    }
+  });
+
+  app.get("/api/trades/:userId", async (req, res) => {
+    const trades = await storage.getUserTrades(req.params.userId);
+    res.json(trades);
+  });
+
+  // Deposit endpoints
+  app.post("/api/deposits", async (req, res) => {
+    try {
+      const data = insertDepositSchema.parse(req.body);
+      if (parseFloat(data.amount.toString()) < 50) {
+        res.status(400).json({ error: "Minimum deposit is $50" });
+        return;
+      }
+      const deposit = await storage.createDeposit(data);
+      res.json(deposit);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid deposit request" });
+    }
+  });
+
+  app.get("/api/deposits/:userId", async (req, res) => {
+    const deposits = await storage.getUserDeposits(req.params.userId);
+    res.json(deposits);
+  });
+
+  // Withdrawal endpoints
+  app.post("/api/withdrawals", async (req, res) => {
+    try {
+      const data = insertWithdrawalSchema.parse(req.body);
+      if (parseFloat(data.amount.toString()) < 100) {
+        res.status(400).json({ error: "Minimum withdrawal is $100" });
+        return;
+      }
+      const withdrawal = await storage.createWithdrawal(data);
+      res.json(withdrawal);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid withdrawal request" });
+    }
+  });
+
+  app.get("/api/withdrawals/:userId", async (req, res) => {
+    const withdrawals = await storage.getUserWithdrawals(req.params.userId);
+    res.json(withdrawals);
+  });
 
   const httpServer = createServer(app);
-
   return httpServer;
 }
