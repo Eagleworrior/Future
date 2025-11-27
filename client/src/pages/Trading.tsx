@@ -148,12 +148,20 @@ export default function Trading() {
                   axisLine={false}
                 />
                 <YAxis 
+                  yAxisId="left"
                   domain={['auto', 'auto']} 
                   stroke="hsl(var(--muted-foreground))" 
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
+                />
+                <YAxis 
+                  yAxisId="right"
                   orientation="right"
+                  stroke="hsl(var(--muted-foreground))" 
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
                 />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
