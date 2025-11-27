@@ -6,7 +6,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserBalance(userId: string, amount: string): Promise<void>;
+  updateUserBalance(userId: string, amount: number): Promise<void>;
   
   // Trade operations
   createTrade(trade: InsertTrade): Promise<Trade>;
@@ -59,10 +59,11 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async updateUserBalance(userId: string, amount: string): Promise<void> {
+  async updateUserBalance(userId: string, amount: number): Promise<void> {
     const user = this.users.get(userId);
     if (user) {
-      user.balance = (parseFloat(user.balance) + parseFloat(amount)).toString();
+      const newBalance = parseFloat(user.balance) + amount;
+      user.balance = newBalance.toFixed(2);
       this.users.set(userId, user);
     }
   }

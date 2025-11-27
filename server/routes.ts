@@ -34,8 +34,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/trades", async (req, res) => {
     try {
       const data = insertTradeSchema.parse(req.body);
+      const tradeAmount = parseFloat(data.amount.toString());
+      
+      // Get user and verify balance
+      const user = await storage.getUser(data.userId);
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+      
+      const userBalance = parseFloat(user.balance);
+      if (tradeAmount > userBalance) {
+        res.status(400).json({ error: "Insufficient balance" });
+        return;
+      }
+
+      // Deduct amount from balance
+      await storage.updateUserBalance(data.userId, -tradeAmount);
+      
+      // Create trade with 80% win probability
+      const isWin = Math.random() < 0.80;
+      const profit = isWin ? tradeAmount * 0.8 : -tradeAmount;
+      
+      // Return trade result
       const trade = await storage.createTrade(data);
-      res.json(trade);
+      
+      // Add profit to balance
+      await storage.updateUserBalance(data.userId, profit);
+      
+      res.json({
+        ...trade,
+        result: { isWin, profit, finalBalance: (userBalance - tradeAmount + profit).toFixed(2) }
+      });
     } catch (error) {
       res.status(400).json({ error: "Invalid trade request" });
     }
@@ -54,6 +84,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Minimum deposit is $50" });
         return;
       }
+      
+      // Add deposit amount to balance
+      const user = await storage.getUser(data.userId);
+      if (user) {
+        await storage.updateUserBalance(data.userId, parseFloat(data.amount.toString()));
+      }
+      
       const deposit = await storage.createDeposit(data);
       res.json(deposit);
     } catch (error) {
@@ -74,6 +111,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Minimum withdrawal is $100" });
         return;
       }
+      
+      // Verify user has sufficient balance
+      const user = await storage.getUser(data.userId);
+      if (!user) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+      
+      const userBalance = parseFloat(user.balance);
+      if (parseFloat(data.amount.toString()) > userBalance) {
+        res.status(400).json({ error: "Insufficient balance" });
+        return;
+      }
+      
+      // Deduct from balance
+      await storage.updateUserBalance(data.userId, -parseFloat(data.amount.toString()));
+      
       const withdrawal = await storage.createWithdrawal(data);
       res.json(withdrawal);
     } catch (error) {
