@@ -64,12 +64,16 @@ export default function Trading() {
       return;
     }
 
+    // Deduct trade amount from balance immediately
+    const balanceAfterDeduction = balance - tradeAmount;
+    
     // Simulate trade with 80% accuracy
     const isWin = Math.random() < 0.80;
-    const profit = isWin ? tradeAmount * (selectedAsset.rate / 100) : -tradeAmount;
-    const newBalance = balance + profit;
+    const winningProfit = tradeAmount * (selectedAsset.rate / 100);
+    const finalBalance = isWin ? balanceAfterDeduction + winningProfit + tradeAmount : balanceAfterDeduction;
+    const profit = finalBalance - balance;
 
-    setBalance(newBalance);
+    setBalance(finalBalance);
     
     setTrades([
       {
