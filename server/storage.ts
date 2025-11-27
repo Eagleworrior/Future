@@ -91,6 +91,7 @@ export class MemStorage implements IStorage {
       ...insertDeposit,
       id,
       status: "pending",
+      reference: insertDeposit.reference || null,
       createdAt: new Date(),
     };
     this.deposits.set(id, deposit);

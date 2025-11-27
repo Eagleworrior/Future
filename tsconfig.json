@@ -1,4 +1,4 @@
-./gradlew bundleRelease{
+{
   "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
@@ -20,18 +20,4 @@
       "@shared/*": ["./shared/*"]
     }
   }
-}
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": false,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "./dist",
-    "composite": true,
-    "moduleResolution": "node",
-    "module": "CommonJS"
-  },
-  "include": ["server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"]
 }
