@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Wallet, Users, TrendingUp, Menu, X, LogOut, Zap, Trophy } from "lucide-react";
+import { LayoutDashboard, Wallet, Users, TrendingUp, Menu, X, LogOut as LogOutIcon, Zap, Trophy } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -9,15 +9,21 @@ interface ShellProps {
 }
 
 export function Shell({ children }: ShellProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/auth");
+    window.location.reload();
+  };
 
   const navItems = [
     { icon: TrendingUp, label: "Trade", href: "/" },
     { icon: Users, label: "Leaderboard", href: "/leaderboard" },
     { icon: Users, label: "Badges", href: "/badges" },
     { icon: Wallet, label: "Deposit", href: "/deposit" },
-    { icon: LogOut, label: "Withdraw", href: "/withdraw" },
+    { icon: LogOutIcon, label: "Withdraw", href: "/withdraw" },
     { icon: Users, label: "Referral", href: "/referral" },
   ];
 
@@ -81,6 +87,15 @@ export function Shell({ children }: ShellProps) {
             <div className="text-xs text-muted-foreground mb-1">Total Balance</div>
             <div className="text-xl font-display font-bold text-gold">$1,240.50</div>
           </div>
+          <Button 
+            onClick={handleLogout}
+            variant="outline"
+            className="w-full text-red-500 border-red-500/50 hover:bg-red-500/10"
+            data-testid="button-logout"
+          >
+            <LogOutIcon className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
         </div>
       </aside>
 
