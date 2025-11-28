@@ -206,9 +206,10 @@ export default function Trading() {
       playLossSound();
     }
     
-    const profit = isWin ? activeTrade.amount * (selectedAsset.rate / 100) : -activeTrade.amount;
+    // Profit calculation: For wins add profit, for losses keep balance same (amount already deducted when trade placed)
+    const profit = isWin ? activeTrade.amount * (selectedAsset.rate / 100) : 0;
     const newBalance = balance + profit;
-    const profitPercent = (profit / activeTrade.amount) * 100;
+    const profitPercent = isWin ? (profit / activeTrade.amount) * 100 : -100;
 
     if (accountType === "demo") {
       setDemoBalance(newBalance);
@@ -220,7 +221,7 @@ export default function Trading() {
       {
         ...activeTrade,
         exitPrice: currentPrice,
-        profit,
+        profit: isWin ? profit : -activeTrade.amount,
         profitPercent,
         status: isWin ? "won" : "lost",
         result: isWin ? "WIN" : "LOSS",
@@ -230,7 +231,7 @@ export default function Trading() {
 
     toast({
       title: isWin ? "Trade Won! 🎉" : "Trade Lost",
-      description: `${activeTrade.type} ${activeTrade.asset} • ${profit > 0 ? "+" : ""}$${profit.toFixed(2)}`,
+      description: `${activeTrade.type} ${activeTrade.asset} • ${isWin ? "+" : "-"}$${(isWin ? profit : activeTrade.amount).toFixed(2)}`,
       variant: isWin ? "default" : "destructive"
     });
 
@@ -301,7 +302,7 @@ export default function Trading() {
               className="cursor-pointer" 
               onClick={() => setAccountType(accountType === "demo" ? "real" : "demo")}
             >
-              {accountType === "demo" ? "📚 Demo (${demoBalance.toFixed(2)})" : `💰 Real (${realBalance > 0 ? "$" + realBalance.toFixed(2) : "Deposit to trade"})`}
+              {accountType === "demo" ? `📚 Demo • $${demoBalance.toFixed(2)}` : `💰 Real • $${realBalance.toFixed(2)}`}
             </Badge>
             <Badge className="bg-gold/20 text-gold border-gold/30">⭐ Premium</Badge>
           </div>
