@@ -493,33 +493,65 @@ export default function Trading() {
                 <div className="p-3 space-y-3 max-h-48 overflow-y-auto">
                   {activeTrades.map((trade) => {
                     const tr = getTimeRemaining(trade);
+                    const priceUp = lastPrice > trade.entryPrice;
+                    const priceDifference = lastPrice - trade.entryPrice;
+                    const percentChange = ((priceDifference / trade.entryPrice) * 100).toFixed(2);
+                    
                     return (
-                      <div key={trade.id} className="border border-yellow-500/20 rounded p-2 bg-yellow-500/5">
-                        <div className="flex justify-between items-center text-xs mb-2">
-                          <span className="font-bold">{trade.type} {trade.asset}</span>
-                          <span className="text-yellow-400 font-mono">${trade.amount}</span>
+                      <div key={trade.id} className={cn("border rounded p-3 transition-all", priceUp ? "border-chart-up/40 bg-chart-up/8" : "border-chart-down/40 bg-chart-down/8")}>
+                        {/* Header with Direction Indicator */}
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-xs">{trade.type} {trade.asset}</span>
+                            {/* Animated Direction Arrow */}
+                            <div className={cn("flex items-center gap-1 px-2 py-1 rounded text-xs font-bold", priceUp ? "bg-chart-up/20 text-chart-up" : "bg-chart-down/20 text-chart-down")}>
+                              {priceUp ? (
+                                <>
+                                  <ArrowUp className="w-3 h-3 animate-bounce" />
+                                  RISING
+                                </>
+                              ) : (
+                                <>
+                                  <ArrowDown className="w-3 h-3 animate-bounce" />
+                                  FALLING
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-yellow-400 font-mono text-xs">${trade.amount}</span>
                         </div>
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span>Entry:</span>
-                            <span className="font-mono">${trade.entryPrice.toFixed(4)}</span>
+
+                        {/* Price Section with Trend */}
+                        <div className="space-y-1 text-xs mb-2">
+                          <div className="flex justify-between items-center bg-background/50 rounded p-1.5">
+                            <span className="text-muted-foreground">Entry:</span>
+                            <span className="font-mono font-bold">${trade.entryPrice.toFixed(4)}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Current:</span>
-                            <span className={cn("font-mono", lastPrice > trade.entryPrice ? "text-chart-up" : "text-chart-down")}>
-                              ${lastPrice.toFixed(4)}
-                            </span>
+                          <div className="flex justify-between items-center bg-background/50 rounded p-1.5 border-l-2" style={{borderColor: priceUp ? 'hsl(var(--chart-up))' : 'hsl(var(--chart-down))'}}>
+                            <span className="text-muted-foreground">Current:</span>
+                            <div className="flex items-center gap-1">
+                              <span className={cn("font-mono font-bold", priceUp ? "text-chart-up" : "text-chart-down")}>
+                                ${lastPrice.toFixed(4)}
+                              </span>
+                              <span className={cn("text-xs font-bold px-1.5 py-0.5 rounded", priceUp ? "bg-chart-up/20 text-chart-up" : "bg-chart-down/20 text-chart-down")}>
+                                {priceUp ? "+" : ""}{percentChange}%
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex justify-between font-bold">
-                            <span>Time:</span>
-                            <span className={cn("font-mono", tr <= 5 ? "text-chart-down animate-pulse" : "text-chart-up")}>{tr}s</span>
-                          </div>
-                          <div className="w-full bg-secondary/30 rounded h-1 mt-1 overflow-hidden">
-                            <div 
-                              className={cn("h-full transition-all", tr <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : "bg-gradient-to-r from-primary to-accent")}
-                              style={{ width: `${(tr / trade.timeFrame) * 100}%` }}
-                            />
-                          </div>
+                        </div>
+
+                        {/* Timer */}
+                        <div className="flex justify-between font-bold text-xs mb-2">
+                          <span>Time Left:</span>
+                          <span className={cn("font-mono px-2 py-1 rounded", tr <= 5 ? "bg-chart-down/30 text-chart-down animate-pulse" : "bg-primary/20 text-primary")}>{tr}s</span>
+                        </div>
+                        
+                        {/* Timer Progress Bar */}
+                        <div className="w-full bg-secondary/30 rounded h-1.5 overflow-hidden">
+                          <div 
+                            className={cn("h-full transition-all", tr <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : "bg-gradient-to-r from-primary to-accent")}
+                            style={{ width: `${(tr / trade.timeFrame) * 100}%` }}
+                          />
                         </div>
                       </div>
                     );
