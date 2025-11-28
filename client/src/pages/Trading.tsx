@@ -358,43 +358,57 @@ export default function Trading() {
 
   return (
     <Shell>
-      <div className="h-full w-full flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="border-b border-border h-16 flex items-center justify-between px-6 bg-gradient-to-r from-card/50 to-accent/20 backdrop-blur-sm flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold font-display">Trading</h1>
-            <Badge 
-              variant={accountType === "demo" ? "outline" : "default"} 
-              className="cursor-pointer" 
-              onClick={() => setAccountType(accountType === "demo" ? "real" : "demo")}
-            >
-              {accountType === "demo" ? `📚 Demo • $${demoBalance.toFixed(2)}` : `💰 Real • $${realBalance.toFixed(2)}`}
-            </Badge>
-            <Badge className="bg-gold/20 text-gold border-gold/30">⭐ Premium</Badge>
+      <div className="h-full w-full flex flex-col overflow-hidden bg-black">
+        {/* Professional Header - Pocket Option Style */}
+        <div className="border-b border-slate-700 h-14 flex items-center justify-between px-6 bg-slate-900/95 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">🦅</span>
+              </div>
+              <span className="font-bold text-white text-lg">Expert Trade</span>
+            </div>
+            <div className="h-6 w-px bg-slate-700"></div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setAccountType(accountType === "demo" ? "real" : "demo")}
+                className={cn("px-4 py-1.5 rounded text-sm font-medium transition-all cursor-pointer", 
+                  accountType === "demo" 
+                    ? "bg-blue-600/20 text-blue-400 border border-blue-500/30" 
+                    : "bg-green-600/20 text-green-400 border border-green-500/30"
+                )}
+              >
+                {accountType === "demo" ? "📚 Demo" : "💰 Real"}
+              </button>
+              <div className="text-xs text-slate-400">${(accountType === "demo" ? demoBalance : realBalance).toFixed(2)}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="text-right">
-              <div className="text-xs text-muted-foreground">Balance</div>
-              <div className={cn("text-2xl font-mono font-bold", balance === 0 ? "text-chart-down" : "text-gold")}>
+              <div className="text-xs text-slate-500 mb-0.5">Account Balance</div>
+              <div className={cn("text-xl font-mono font-bold", balance >= 1000 ? "text-green-400" : balance > 0 ? "text-yellow-400" : "text-red-400")}>
                 ${balance.toFixed(2)}
               </div>
+            </div>
+            <div className="px-3 py-1 rounded bg-yellow-500/20 border border-yellow-500/40">
+              <span className="text-xs font-bold text-yellow-400">⭐ PREMIUM</span>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 flex gap-6 overflow-hidden p-6 min-h-0">
+        <div className="flex-1 flex gap-4 overflow-hidden p-4 min-h-0 bg-slate-950">
           {/* Main Trading Area */}
-          <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col gap-3 overflow-hidden min-h-0">
             {/* Main Candlestick Chart */}
-            <Card className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-background/80 to-background min-h-0">
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0 bg-slate-900/50 rounded-lg border border-slate-700">
               {/* Asset & Price Bar */}
-              <div className="h-16 border-b border-border flex items-center justify-between px-6 gap-4 bg-accent/30 flex-shrink-0">
+              <div className="h-14 border-b border-slate-700 flex items-center justify-between px-5 gap-4 bg-slate-900/80 flex-shrink-0 rounded-t-lg">
                 <div className="flex items-center gap-4">
                   <Select 
                     value={selectedAsset.symbol} 
                     onValueChange={(val) => setSelectedAsset(ASSETS.find(a => a.symbol === val) || ASSETS[0])}
                   >
-                    <SelectTrigger className="w-[200px] border-none bg-transparent focus:ring-0 text-lg font-bold">
+                    <SelectTrigger className="w-[180px] border-none bg-transparent focus:ring-0 text-base font-bold text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-[400px]">
@@ -407,19 +421,19 @@ export default function Trading() {
                   </Select>
                 </div>
 
-                <div className="ml-auto flex items-center gap-4">
+                <div className="ml-auto flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <Badge className={cn(priceChange >= 0 ? "bg-chart-up/20 text-chart-up border-chart-up/30" : "bg-chart-down/20 text-chart-down border-chart-down/30", "border")}>
-                      {priceChange >= 0 ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
+                    <div className={cn("px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1", priceChange >= 0 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400")}>
+                      {priceChange >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
                       {Math.abs(priceChange).toFixed(2)}%
-                    </Badge>
-                    <div className="text-3xl font-mono font-bold">{lastPrice.toFixed(4)}</div>
+                    </div>
+                    <div className="text-2xl font-mono font-bold text-white">{lastPrice.toFixed(4)}</div>
                   </div>
                 </div>
               </div>
 
               {/* Main Candlestick Chart with Technical Indicators */}
-              <div className="flex-1 w-full bg-gradient-to-b from-background/50 to-background p-4 overflow-hidden min-h-0">
+              <div className="flex-1 w-full bg-black p-3 overflow-hidden min-h-0 rounded-b-lg" style={{ minHeight: "400px" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={data} margin={{ top: 20, right: 80, bottom: 20, left: 60 }}>
                     <defs>
