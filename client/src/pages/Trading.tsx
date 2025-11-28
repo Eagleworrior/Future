@@ -482,34 +482,48 @@ export default function Trading() {
 
           {/* Trading Controls Sidebar */}
           <div className="w-80 flex flex-col gap-4 overflow-y-auto max-h-full min-h-0">
-            {/* Active Trade Info */}
-            {activeTrade && (
+            {/* Active Trades Info */}
+            {activeTrades.length > 0 && (
               <Card className="border-yellow-500/50 bg-yellow-500/10">
-                <div className="p-4 space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Status:</span>
-                    <Badge className="bg-yellow-500/20 text-yellow-400">Active</Badge>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Entry:</span>
-                    <span className="font-mono">${activeTrade.entryPrice.toFixed(4)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Current:</span>
-                    <span className={cn("font-mono", lastPrice > activeTrade.entryPrice ? "text-chart-up" : "text-chart-down")}>
-                      ${lastPrice.toFixed(4)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm font-bold text-lg">
-                    <span>Time Left:</span>
-                    <span className={cn("text-xl font-mono", timeRemaining <= 10 ? "text-chart-down animate-pulse" : "text-chart-up")}>{timeRemaining}s</span>
-                  </div>
-                  <div className="w-full bg-secondary/50 rounded-lg h-2 mt-3 overflow-hidden">
-                    <div 
-                      className={cn("h-full transition-all", timeRemaining <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : "bg-gradient-to-r from-primary to-accent")}
-                      style={{ width: `${(timeRemaining / activeTrade.timeFrame) * 100}%` }}
-                    />
-                  </div>
+                <div className="p-3 border-b border-yellow-500/30">
+                  <Badge className="bg-yellow-500/20 text-yellow-400 text-xs">
+                    {activeTrades.length} Active Trade{activeTrades.length > 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                <div className="p-3 space-y-3 max-h-48 overflow-y-auto">
+                  {activeTrades.map((trade) => {
+                    const tr = getTimeRemaining(trade);
+                    return (
+                      <div key={trade.id} className="border border-yellow-500/20 rounded p-2 bg-yellow-500/5">
+                        <div className="flex justify-between items-center text-xs mb-2">
+                          <span className="font-bold">{trade.type} {trade.asset}</span>
+                          <span className="text-yellow-400 font-mono">${trade.amount}</span>
+                        </div>
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span>Entry:</span>
+                            <span className="font-mono">${trade.entryPrice.toFixed(4)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Current:</span>
+                            <span className={cn("font-mono", lastPrice > trade.entryPrice ? "text-chart-up" : "text-chart-down")}>
+                              ${lastPrice.toFixed(4)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between font-bold">
+                            <span>Time:</span>
+                            <span className={cn("font-mono", tr <= 5 ? "text-chart-down animate-pulse" : "text-chart-up")}>{tr}s</span>
+                          </div>
+                          <div className="w-full bg-secondary/30 rounded h-1 mt-1 overflow-hidden">
+                            <div 
+                              className={cn("h-full transition-all", tr <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : "bg-gradient-to-r from-primary to-accent")}
+                              style={{ width: `${(tr / trade.timeFrame) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </Card>
             )}
@@ -537,7 +551,7 @@ export default function Trading() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="text-xl font-bold h-12"
-                    disabled={!!activeTrade || balance === 0}
+                    disabled={balance === 0}
                   />
                 </div>
 
@@ -550,7 +564,6 @@ export default function Trading() {
                         variant={timeFrame === tf.value ? "default" : "outline"}
                         onClick={() => setTimeFrame(tf.value)}
                         className="text-sm"
-                        disabled={!!activeTrade}
                       >
                         <Clock className="w-3 h-3 mr-1" />
                         {tf.label}
@@ -562,7 +575,7 @@ export default function Trading() {
                 <div className="grid grid-cols-2 gap-3">
                   <Button 
                     onClick={() => placeTrade("CALL")}
-                    disabled={!!activeTrade || balance === 0}
+                    disabled={balance === 0}
                     className="h-20 flex flex-col gap-1 bg-chart-up hover:bg-chart-up/90 text-white border-none disabled:opacity-50"
                   >
                     <ArrowUp className="w-6 h-6" />
@@ -571,7 +584,7 @@ export default function Trading() {
                   </Button>
                   <Button 
                     onClick={() => placeTrade("PUT")}
-                    disabled={!!activeTrade || balance === 0}
+                    disabled={balance === 0}
                     className="h-20 flex flex-col gap-1 bg-chart-down hover:bg-chart-down/90 text-white border-none disabled:opacity-50"
                   >
                     <ArrowDown className="w-6 h-6" />
