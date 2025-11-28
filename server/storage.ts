@@ -48,11 +48,18 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
-      balance: "1000",
+      demoBalance: "1000",
+      realBalance: "0",
+      currentAccountType: "demo",
       referralCode,
       referredBy: null,
       totalReferrals: 0,
       referralEarnings: "0",
+      loyaltyPoints: 0,
+      isPremium: false,
+      lastLoginDate: new Date(),
+      consecutiveLogins: 1,
+      badges: "[]",
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -62,8 +69,9 @@ export class MemStorage implements IStorage {
   async updateUserBalance(userId: string, amount: number): Promise<void> {
     const user = this.users.get(userId);
     if (user) {
-      const newBalance = parseFloat(user.balance) + amount;
-      user.balance = newBalance.toFixed(2);
+      const currentBalance = parseFloat(user.demoBalance || "0");
+      const newBalance = currentBalance + amount;
+      user.demoBalance = newBalance.toFixed(2);
       this.users.set(userId, user);
     }
   }
@@ -76,7 +84,7 @@ export class MemStorage implements IStorage {
       profit: null,
       status: "open",
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 60000),
+      closedAt: null,
     };
     this.trades.set(id, trade);
     return trade;
@@ -92,7 +100,8 @@ export class MemStorage implements IStorage {
       ...insertDeposit,
       id,
       status: "pending",
-      reference: insertDeposit.reference || null,
+      verified: false,
+      verifiedAt: null,
       createdAt: new Date(),
     };
     this.deposits.set(id, deposit);

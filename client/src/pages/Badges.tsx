@@ -85,7 +85,7 @@ export default function Badges() {
               </div>
             </div>
           </Card>
-        </Card>
+        </div>
 
         {/* Premium Features */}
         <Card className="mb-8 p-6 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5">
