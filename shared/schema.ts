@@ -16,6 +16,11 @@ export const users = pgTable("users", {
   referredBy: varchar("referred_by", { length: 36 }),
   totalReferrals: integer("total_referrals").default(0),
   referralEarnings: numeric("referral_earnings", { precision: 10, scale: 2 }).default("0"),
+  loyaltyPoints: integer("loyalty_points").default(0),
+  isPremium: boolean("is_premium").default(false),
+  lastLoginDate: timestamp("last_login_date"),
+  consecutiveLogins: integer("consecutive_logins").default(0),
+  badges: text("badges").default("[]"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -40,7 +45,7 @@ export const trades = pgTable("trades", {
   profit: numeric("profit", { precision: 10, scale: 2 }),
   profitPercent: numeric("profit_percent", { precision: 5, scale: 2 }),
   status: varchar("status", { length: 20 }).default("open"),
-  timeFrame: integer("time_frame"), // in seconds
+  timeFrame: integer("time_frame"),
   accountType: varchar("account_type", { length: 20 }).default("demo"),
   createdAt: timestamp("created_at").defaultNow(),
   closedAt: timestamp("closed_at"),

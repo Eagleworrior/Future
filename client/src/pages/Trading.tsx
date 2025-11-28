@@ -189,7 +189,7 @@ export default function Trading() {
     <Shell>
       <div className="h-full flex flex-col">
         {/* Header */}
-        <div className="border-b border-border h-16 flex items-center justify-between px-6 bg-card/50 backdrop-blur-sm">
+        <div className="border-b border-border h-16 flex items-center justify-between px-6 bg-gradient-to-r from-card/50 to-accent/20 backdrop-blur-sm">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold font-display">Trading</h1>
             <Badge 
@@ -199,6 +199,7 @@ export default function Trading() {
             >
               {accountType === "demo" ? "📚 Demo (${demoBalance.toFixed(2)})" : `💰 Real (${realBalance > 0 ? "$" + realBalance.toFixed(2) : "Deposit to trade"})`}
             </Badge>
+            <Badge className="bg-gold/20 text-gold border-gold/30">⭐ Premium</Badge>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">

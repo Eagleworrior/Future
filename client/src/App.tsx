@@ -9,12 +9,14 @@ import Deposit from "@/pages/Deposit";
 import Withdraw from "@/pages/Withdraw";
 import Referral from "@/pages/Referral";
 import Leaderboard from "@/pages/Leaderboard";
+import Badges from "@/pages/Badges";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Trading} />
       <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/badges" component={Badges} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/withdraw" component={Withdraw} />
       <Route path="/referral" component={Referral} />
