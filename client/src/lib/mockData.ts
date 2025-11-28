@@ -6,6 +6,7 @@ export interface CandleData {
   high: number;
   low: number;
   close: number;
+  volume?: number;
   rsi?: number;
   ma20?: number;
   ma50?: number;
@@ -77,6 +78,7 @@ export const generateData = (count: number): CandleData[] => {
       high: parseFloat(high.toFixed(4)),
       low: parseFloat(low.toFixed(4)),
       close: parseFloat(close.toFixed(4)),
+      volume: Math.floor(Math.random() * 10000),
       rsi: parseFloat(rsi.toFixed(2)),
       ma20: parseFloat(ma20.toFixed(4)),
       ma50: parseFloat(ma50.toFixed(4)),
