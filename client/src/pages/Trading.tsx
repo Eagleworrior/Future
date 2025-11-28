@@ -6,10 +6,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ASSETS, generateData } from "@/lib/mockData";
 import { useState, useEffect, useRef } from "react";
 import { ComposedChart, Bar, Area, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line, ReferenceLine } from "recharts";
-import { ArrowDown, ArrowUp, TrendingUp, Activity, Clock, Users, Target, Trophy, Zap, AlertCircle } from "lucide-react";
+import { ArrowDown, ArrowUp, TrendingUp, Activity, Clock, Users, Target, Trophy, Zap, AlertCircle, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+
+// Bird sound effect generator
+const playBirdSound = () => {
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const notes = [800, 1200, 1000, 1400, 950];
+  const now = audioContext.currentTime;
+  
+  notes.forEach((freq, i) => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    
+    gain.gain.setValueAtTime(0.3, now + i * 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.15);
+    
+    osc.start(now + i * 0.1);
+    osc.stop(now + i * 0.1 + 0.15);
+  });
+};
 
 const TIME_FRAMES = [
   { label: "1m", value: 60 },
@@ -81,12 +105,25 @@ export default function Trading() {
     return () => clearInterval(interval);
   }, []);
 
-  // Check active trade expiration
+  // Check active trade expiration and 5-second warning
+  const birdSoundPlayedRef = useRef(false);
+  
   useEffect(() => {
-    if (!activeTrade) return;
+    if (!activeTrade) {
+      birdSoundPlayedRef.current = false;
+      return;
+    }
     
     const checkTrade = setInterval(() => {
       const elapsed = (Date.now() - activeTrade.startTime) / 1000;
+      const timeLeft = Math.max(0, Math.ceil(activeTrade.timeFrame - elapsed));
+      
+      // Play bird sound when 5 seconds remain (only once)
+      if (timeLeft === 5 && !birdSoundPlayedRef.current) {
+        playBirdSound();
+        birdSoundPlayedRef.current = true;
+      }
+      
       if (elapsed >= activeTrade.timeFrame) {
         closeTrade();
       }
@@ -396,12 +433,15 @@ export default function Trading() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm font-bold text-lg">
-                    <span>Time Left:</span>
-                    <span className={cn("text-xl", timeRemaining <= 10 ? "text-chart-down animate-pulse" : "text-chart-up")}>{timeRemaining}s</span>
+                    <div className="flex items-center gap-2">
+                      <span>Time Left:</span>
+                      {timeRemaining === 5 && <Volume2 className="w-4 h-4 text-gold animate-pulse" />}
+                    </div>
+                    <span className={cn("text-xl font-mono", timeRemaining <= 10 ? "text-chart-down animate-pulse" : "text-chart-up")}>{timeRemaining}s</span>
                   </div>
                   <div className="w-full bg-secondary/50 rounded-lg h-2 mt-3 overflow-hidden">
                     <div 
-                      className="bg-gradient-to-r from-primary to-accent h-full transition-all"
+                      className={cn("h-full transition-all", timeRemaining <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : "bg-gradient-to-r from-primary to-accent")}
                       style={{ width: `${(timeRemaining / activeTrade.timeFrame) * 100}%` }}
                     />
                   </div>
