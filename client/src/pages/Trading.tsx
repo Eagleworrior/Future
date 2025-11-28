@@ -277,10 +277,10 @@ export default function Trading() {
     
     // Profit calculation:
     // WIN: Return original bet + payout profit to balance
-    // LOSS: Balance stays same (bet already deducted on trade placement)
+    // LOSS: Balance already deducted - no additional deduction
     const profit = isWin ? activeTrade.amount * (selectedAsset.rate / 100) : 0;
     const newBalance = isWin ? (balance + activeTrade.amount + profit) : balance;
-    const profitPercent = isWin ? ((activeTrade.amount + profit) / activeTrade.amount - 1) * 100 : -100;
+    const profitPercent = isWin ? ((profit / activeTrade.amount) * 100) : -100;
 
     if (accountType === "demo") {
       setDemoBalance(newBalance);
@@ -301,8 +301,8 @@ export default function Trading() {
     ]);
 
     toast({
-      title: isWin ? "Trade Won! 🎉" : "Trade Lost",
-      description: `${activeTrade.type} ${activeTrade.asset} • ${isWin ? "+" : "-"}$${(isWin ? profit : activeTrade.amount).toFixed(2)}`,
+      title: isWin ? "✅ Trade Won!" : "❌ Trade Lost",
+      description: `${activeTrade.type} ${activeTrade.asset} • ${isWin ? "+" : "-"}$${(isWin ? profit : activeTrade.amount).toFixed(2)} • Bet: $${activeTrade.amount}`,
       variant: isWin ? "default" : "destructive"
     });
 
@@ -347,6 +347,42 @@ export default function Trading() {
     toast({
       title: `${type} Trade Opened`,
       description: `${selectedAsset.symbol} • $${tradeAmount.toFixed(2)} • ${timeFrame}s`,
+    });
+  };
+
+  // Double Bet Feature - after 15 seconds remaining
+  const doubleBet = (tradeId: number) => {
+    const activeTrade = activeTrades.find(t => t.id === tradeId);
+    if (!activeTrade) return;
+
+    const doubledAmount = activeTrade.amount * 2;
+    const currentBalanceAmount = accountType === "demo" ? demoBalance : realBalance;
+
+    if (doubledAmount > currentBalanceAmount) {
+      toast({ 
+        title: "Insufficient balance to double", 
+        description: `Need $${doubledAmount.toFixed(2)} but only have $${currentBalanceAmount.toFixed(2)}`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Deduct doubled amount from balance
+    const newBalance = currentBalanceAmount - doubledAmount;
+    if (accountType === "demo") {
+      setDemoBalance(newBalance);
+    } else {
+      setRealBalance(newBalance);
+    }
+
+    // Update the active trade with doubled amount
+    setActiveTrades(activeTrades.map(t => 
+      t.id === tradeId ? { ...t, amount: doubledAmount, isDoubled: true } : t
+    ));
+
+    toast({
+      title: "Bet Doubled! 🎲",
+      description: `Bet increased to $${doubledAmount.toFixed(2)}`,
     });
   };
 
@@ -814,16 +850,27 @@ export default function Trading() {
                         {/* Timer */}
                         <div className="flex justify-between font-bold text-xs mb-2">
                           <span>Time Left:</span>
-                          <span className={cn("font-mono px-2 py-1 rounded", tr <= 5 ? "bg-chart-down/30 text-chart-down animate-pulse" : "bg-primary/20 text-primary")}>{tr}s</span>
+                          <span className={cn("font-mono px-2 py-1 rounded", tr <= 5 ? "bg-chart-down/30 text-chart-down animate-pulse" : tr <= 15 ? "bg-yellow-500/30 text-yellow-400" : "bg-primary/20 text-primary")}>{tr}s</span>
                         </div>
                         
                         {/* Timer Progress Bar */}
-                        <div className="w-full bg-secondary/30 rounded h-1.5 overflow-hidden">
+                        <div className="w-full bg-secondary/30 rounded h-1.5 overflow-hidden mb-2">
                           <div 
-                            className={cn("h-full transition-all", tr <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : "bg-gradient-to-r from-primary to-accent")}
+                            className={cn("h-full transition-all", tr <= 5 ? "bg-gradient-to-r from-chart-down to-red-500" : tr <= 15 ? "bg-gradient-to-r from-yellow-500 to-orange-500" : "bg-gradient-to-r from-primary to-accent")}
                             style={{ width: `${(tr / trade.timeFrame) * 100}%` }}
                           />
                         </div>
+
+                        {/* Double Bet Button - Shows when 15s or less remaining */}
+                        {tr <= 15 && tr > 0 && (
+                          <Button
+                            onClick={() => doubleBet(trade.id)}
+                            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-2 rounded text-xs"
+                            data-testid={`button-double-bet-${trade.id}`}
+                          >
+                            🎲 Double Bet (${(trade.amount * 2).toFixed(2)})
+                          </Button>
+                        )}
                       </div>
                     );
                   })}
