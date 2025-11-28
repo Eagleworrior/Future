@@ -408,15 +408,26 @@ export default function Trading() {
                     value={selectedAsset.symbol} 
                     onValueChange={(val) => setSelectedAsset(ASSETS.find(a => a.symbol === val) || ASSETS[0])}
                   >
-                    <SelectTrigger className="w-[180px] border-none bg-transparent focus:ring-0 text-base font-bold text-white">
+                    <SelectTrigger className="w-[180px] border-none bg-transparent focus:ring-0 text-base font-bold text-white hover:bg-white/5 px-3 py-2 rounded transition">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[400px]">
-                      {ASSETS.map(asset => (
-                        <SelectItem key={asset.symbol} value={asset.symbol}>
-                          {asset.symbol} • {asset.type}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[500px]">
+                      {['Forex', 'Crypto', 'Commodity', 'Index', 'Stock'].map(category => {
+                        const assets = ASSETS.filter(a => a.type === category);
+                        return assets.length > 0 ? (
+                          <div key={category}>
+                            <div className="px-2 py-1.5 text-xs font-bold text-slate-500 bg-slate-100 sticky top-0 z-10">
+                              {category.toUpperCase()} ({assets.length})
+                            </div>
+                            {assets.map(asset => (
+                              <SelectItem key={asset.symbol} value={asset.symbol} className="pl-6">
+                                <span className="font-medium">{asset.symbol}</span>
+                                <span className="text-slate-500 ml-2">({asset.rate}% payout)</span>
+                              </SelectItem>
+                            ))}
+                          </div>
+                        ) : null;
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

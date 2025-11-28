@@ -106,6 +106,14 @@ export const ASSETS = [
   { symbol: "EUR/GBP", type: "Forex", rate: 70 },
   { symbol: "EUR/JPY", type: "Forex", rate: 76 },
   { symbol: "GBP/JPY", type: "Forex", rate: 74 },
+  { symbol: "USD/SGD", type: "Forex", rate: 73 },
+  { symbol: "USD/HKD", type: "Forex", rate: 77 },
+  { symbol: "USD/INR", type: "Forex", rate: 65 },
+  { symbol: "USD/MXN", type: "Forex", rate: 70 },
+  { symbol: "USD/ZAR", type: "Forex", rate: 68 },
+  { symbol: "USD/RUB", type: "Forex", rate: 60 },
+  { symbol: "AUD/JPY", type: "Forex", rate: 75 },
+  { symbol: "EUR/CAD", type: "Forex", rate: 73 },
 
   // CRYPTOCURRENCIES
   { symbol: "BTC/USD", type: "Crypto", rate: 75 },
