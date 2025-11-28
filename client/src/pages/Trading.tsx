@@ -275,10 +275,12 @@ export default function Trading() {
       playLossSound();
     }
     
-    // Profit calculation: For wins add profit, for losses keep balance same (amount already deducted when trade placed)
+    // Profit calculation:
+    // WIN: Return original bet + payout profit to balance
+    // LOSS: Balance stays same (bet already deducted on trade placement)
     const profit = isWin ? activeTrade.amount * (selectedAsset.rate / 100) : 0;
-    const newBalance = balance + profit;
-    const profitPercent = isWin ? (profit / activeTrade.amount) * 100 : -100;
+    const newBalance = isWin ? (balance + activeTrade.amount + profit) : balance;
+    const profitPercent = isWin ? ((activeTrade.amount + profit) / activeTrade.amount - 1) * 100 : -100;
 
     if (accountType === "demo") {
       setDemoBalance(newBalance);
