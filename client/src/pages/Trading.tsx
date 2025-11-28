@@ -11,42 +11,36 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-// Bird chirping sound effect
-const playBirdChirp = () => {
-  try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [800, 1200, 1000, 1400, 950];
-    const now = audioContext.currentTime;
-    
-    notes.forEach((freq, i) => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-      
-      gain.gain.setValueAtTime(0.2, now + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.12);
-      
-      osc.start(now + i * 0.08);
-      osc.stop(now + i * 0.08 + 0.12);
-    });
-  } catch (e) {
-    // Audio context not available
-  }
-};
-
-// Win/Profit sound effect - ascending cheerful tones
+// Win sound effect - clapping and cheering celebration
 const playWinSound = () => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C high
     const now = audioContext.currentTime;
     
-    notes.forEach((freq, i) => {
+    // Clapping effect - sharp bursts with white noise
+    for (let i = 0; i < 3; i++) {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const filter = audioContext.createBiquadFilter();
+      
+      osc.type = 'triangle';
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioContext.destination);
+      
+      osc.frequency.setValueAtTime(800 + i * 100, now + i * 0.15);
+      osc.frequency.exponentialRampToValueAtTime(500, now + i * 0.15 + 0.08);
+      
+      gain.gain.setValueAtTime(0.3, now + i * 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.08);
+      
+      osc.start(now + i * 0.15);
+      osc.stop(now + i * 0.15 + 0.08);
+    }
+    
+    // Cheering effect - ascending tones
+    const cheerNotes = [880, 1100, 1320];
+    cheerNotes.forEach((freq, i) => {
       const osc = audioContext.createOscillator();
       const gain = audioContext.createGain();
       
@@ -56,22 +50,22 @@ const playWinSound = () => {
       osc.frequency.value = freq;
       osc.type = 'sine';
       
-      gain.gain.setValueAtTime(0.3, now + i * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.25);
+      gain.gain.setValueAtTime(0.25, now + 0.5 + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5 + i * 0.1 + 0.15);
       
-      osc.start(now + i * 0.15);
-      osc.stop(now + i * 0.15 + 0.25);
+      osc.start(now + 0.5 + i * 0.1);
+      osc.stop(now + 0.5 + i * 0.1 + 0.15);
     });
   } catch (e) {
     // Audio context not available
   }
 };
 
-// Loss sound effect - descending sad tones
+// Loss sound effect - sad/disappointed tones
 const playLossSound = () => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const notes = [523.25, 392, 329.63, 261.63]; // C, G, E, C low
+    const notes = [523.25, 392, 329.63, 261.63]; // C, G, E, C low - descending sad
     const now = audioContext.currentTime;
     
     notes.forEach((freq, i) => {
@@ -165,24 +159,12 @@ export default function Trading() {
     return () => clearInterval(interval);
   }, []);
 
-  // Check active trade expiration and bird chirp countdown
-  const lastChirpTimeRef = useRef(-1);
-  
+  // Check active trade expiration
   useEffect(() => {
-    if (!activeTrade) {
-      lastChirpTimeRef.current = -1;
-      return;
-    }
+    if (!activeTrade) return;
     
     const checkTrade = setInterval(() => {
       const elapsed = (Date.now() - activeTrade.startTime) / 1000;
-      const timeLeft = Math.max(0, Math.ceil(activeTrade.timeFrame - elapsed));
-      
-      // Play bird chirp every second from 5 seconds to 0
-      if (timeLeft <= 5 && timeLeft > 0 && lastChirpTimeRef.current !== timeLeft) {
-        playBirdChirp();
-        lastChirpTimeRef.current = timeLeft;
-      }
       
       if (elapsed >= activeTrade.timeFrame) {
         closeTrade();
@@ -501,10 +483,7 @@ export default function Trading() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm font-bold text-lg">
-                    <div className="flex items-center gap-2">
-                      <span>Time Left:</span>
-                      {timeRemaining === 5 && <Volume2 className="w-4 h-4 text-gold animate-pulse" />}
-                    </div>
+                    <span>Time Left:</span>
                     <span className={cn("text-xl font-mono", timeRemaining <= 10 ? "text-chart-down animate-pulse" : "text-chart-up")}>{timeRemaining}s</span>
                   </div>
                   <div className="w-full bg-secondary/50 rounded-lg h-2 mt-3 overflow-hidden">
