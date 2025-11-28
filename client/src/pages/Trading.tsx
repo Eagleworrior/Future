@@ -187,9 +187,9 @@ export default function Trading() {
 
   return (
     <Shell>
-      <div className="h-full flex flex-col">
+      <div className="h-full w-full flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="border-b border-border h-16 flex items-center justify-between px-6 bg-gradient-to-r from-card/50 to-accent/20 backdrop-blur-sm">
+        <div className="border-b border-border h-16 flex items-center justify-between px-6 bg-gradient-to-r from-card/50 to-accent/20 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold font-display">Trading</h1>
             <Badge 
@@ -211,13 +211,13 @@ export default function Trading() {
           </div>
         </div>
 
-        <div className="flex-1 flex gap-6 overflow-hidden p-6">
+        <div className="flex-1 flex gap-6 overflow-hidden p-6 min-h-0">
           {/* Main Trading Area */}
-          <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+          <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
             {/* Main Candlestick Chart */}
-            <Card className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-background/80 to-background">
+            <Card className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-background/80 to-background min-h-0">
               {/* Asset & Price Bar */}
-              <div className="h-16 border-b border-border flex items-center justify-between px-6 gap-4 bg-accent/30">
+              <div className="h-16 border-b border-border flex items-center justify-between px-6 gap-4 bg-accent/30 flex-shrink-0">
                 <div className="flex items-center gap-4">
                   <Select 
                     value={selectedAsset.symbol} 
@@ -248,7 +248,7 @@ export default function Trading() {
               </div>
 
               {/* Main Candlestick Chart with Technical Indicators */}
-              <div className="flex-1 w-full bg-gradient-to-b from-background/50 to-background p-4 overflow-hidden">
+              <div className="flex-1 w-full bg-gradient-to-b from-background/50 to-background p-4 overflow-hidden min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={data} margin={{ top: 20, right: 80, bottom: 20, left: 60 }}>
                     <defs>
@@ -354,7 +354,7 @@ export default function Trading() {
             </Card>
 
             {/* Technical Analysis Indicators */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-3 flex-shrink-0">
               <Card className="p-3 bg-accent/30 border-border">
                 <div className="text-xs text-muted-foreground mb-1">RSI (14)</div>
                 <div className={cn("text-lg font-bold", rsiColor)}>{rsiValue.toFixed(1)}</div>
@@ -373,30 +373,10 @@ export default function Trading() {
                 <div className="text-lg font-bold">{(latestCandle.volume || 0).toLocaleString()}</div>
               </Card>
             </div>
-
-            {/* Live Trades Chart */}
-            <Card className="h-32">
-              <div className="p-3 border-b border-border flex items-center gap-2">
-                <Users className="w-4 h-4 text-gold" />
-                <span className="text-sm font-bold">Live Trading Results</span>
-              </div>
-              <div className="flex-1 p-2">
-                <ResponsiveContainer width="100%" height={70}>
-                  <LineChart data={liveTradesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.1} />
-                    <XAxis dataKey="time" fontSize={10} />
-                    <YAxis fontSize={10} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="wins" stroke="#22c55e" dot={false} isAnimationActive={false} strokeWidth={2} />
-                    <Line type="monotone" dataKey="losses" stroke="#ef4444" dot={false} isAnimationActive={false} strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
           </div>
 
           {/* Trading Controls Sidebar */}
-          <div className="w-80 flex flex-col gap-4 overflow-y-auto max-h-full">
+          <div className="w-80 flex flex-col gap-4 overflow-y-auto max-h-full min-h-0">
             {/* Active Trade Info */}
             {activeTrade && (
               <Card className="border-yellow-500/50 bg-yellow-500/10">
