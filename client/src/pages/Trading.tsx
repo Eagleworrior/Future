@@ -119,7 +119,7 @@ export default function Trading() {
   const [balance, setBalance] = useState(1000.00);
   const [lastPrice, setLastPrice] = useState(data[data.length - 1].close);
   const [priceChange, setPriceChange] = useState(0);
-  const [activeTrade, setActiveTrade] = useState<any>(null);
+  const [activeTrades, setActiveTrades] = useState<any[]>([]);
   const [trades, setTrades] = useState<any[]>([]);
   const [liveTradesData, setLiveTradesData] = useState<any[]>([
     { time: "14:00", wins: 65, losses: 35 },
@@ -180,22 +180,24 @@ export default function Trading() {
     return () => clearInterval(interval);
   }, []);
 
-  // Check active trade expiration
+  // Check active trades expiration
   useEffect(() => {
-    if (!activeTrade) return;
+    if (activeTrades.length === 0) return;
     
-    const checkTrade = setInterval(() => {
-      const elapsed = (Date.now() - activeTrade.startTime) / 1000;
-      
-      if (elapsed >= activeTrade.timeFrame) {
-        closeTrade();
-      }
+    const checkTrades = setInterval(() => {
+      activeTrades.forEach(trade => {
+        const elapsed = (Date.now() - trade.startTime) / 1000;
+        if (elapsed >= trade.timeFrame) {
+          closeTradeById(trade.id);
+        }
+      });
     }, 200);
     
-    return () => clearInterval(checkTrade);
-  }, [activeTrade]);
+    return () => clearInterval(checkTrades);
+  }, [activeTrades]);
 
-  const closeTrade = () => {
+  const closeTradeById = (tradeId: number) => {
+    const activeTrade = activeTrades.find(t => t.id === tradeId);
     if (!activeTrade) return;
 
     const currentPrice = lastPrice;
@@ -238,7 +240,7 @@ export default function Trading() {
       variant: isWin ? "default" : "destructive"
     });
 
-    setActiveTrade(null);
+    setActiveTrades(activeTrades.filter(t => t.id !== tradeId));
   };
 
   const placeTrade = (type: "CALL" | "PUT") => {
@@ -251,11 +253,6 @@ export default function Trading() {
     
     if (tradeAmount > balance) {
       toast({ title: "Insufficient balance", variant: "destructive" });
-      return;
-    }
-
-    if (activeTrade) {
-      toast({ title: "Close active trade first", variant: "destructive" });
       return;
     }
 
@@ -279,7 +276,7 @@ export default function Trading() {
       createdAt: new Date().toLocaleTimeString(),
     };
 
-    setActiveTrade(trade);
+    setActiveTrades([...activeTrades, trade]);
 
     toast({
       title: `${type} Trade Opened`,
@@ -287,7 +284,7 @@ export default function Trading() {
     });
   };
 
-  const timeRemaining = activeTrade ? Math.max(0, Math.ceil(activeTrade.timeFrame - (Date.now() - activeTrade.startTime) / 1000)) : 0;
+  const getTimeRemaining = (trade: any) => Math.max(0, Math.ceil(trade.timeFrame - (Date.now() - trade.startTime) / 1000));
   const latestCandle = data[data.length - 1];
   const rsiValue = latestCandle.rsi || 50;
   const rsiSignal = rsiValue > 70 ? "Overbought" : rsiValue < 30 ? "Oversold" : "Neutral";
