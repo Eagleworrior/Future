@@ -102,8 +102,20 @@ export default function Trading() {
   const [amount, setAmount] = useState("100");
   const [timeFrame, setTimeFrame] = useState(60);
   const [accountType, setAccountType] = useState<"demo" | "real">("demo");
-  const [demoBalance, setDemoBalance] = useState(1000.00);
-  const [realBalance, setRealBalance] = useState(0.00);
+  const [demoBalance, setDemoBalance] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('demoBalance');
+      return saved ? parseFloat(saved) : 1000.00;
+    }
+    return 1000.00;
+  });
+  const [realBalance, setRealBalance] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('realBalance');
+      return saved ? parseFloat(saved) : 0.00;
+    }
+    return 0.00;
+  });
   const [balance, setBalance] = useState(1000.00);
   const [lastPrice, setLastPrice] = useState(data[data.length - 1].close);
   const [priceChange, setPriceChange] = useState(0);
@@ -123,6 +135,15 @@ export default function Trading() {
   useEffect(() => {
     setBalance(accountType === "demo" ? demoBalance : realBalance);
   }, [accountType, demoBalance, realBalance]);
+
+  // Persist balance to localStorage
+  useEffect(() => {
+    localStorage.setItem('demoBalance', demoBalance.toString());
+  }, [demoBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('realBalance', realBalance.toString());
+  }, [realBalance]);
 
   // Live data simulation
   useEffect(() => {
