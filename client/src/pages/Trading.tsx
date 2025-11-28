@@ -397,11 +397,14 @@ export default function Trading() {
                   </div>
                   <div className="flex justify-between items-center text-sm font-bold text-lg">
                     <span>Time Left:</span>
-                    <span>{timeRemaining}s</span>
+                    <span className={cn("text-xl", timeRemaining <= 10 ? "text-chart-down animate-pulse" : "text-chart-up")}>{timeRemaining}s</span>
                   </div>
-                  <Button onClick={closeTrade} className="w-full mt-2" size="sm" variant="destructive">
-                    Close Trade Early
-                  </Button>
+                  <div className="w-full bg-secondary/50 rounded-lg h-2 mt-3 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-primary to-accent h-full transition-all"
+                      style={{ width: `${(timeRemaining / activeTrade.timeFrame) * 100}%` }}
+                    />
+                  </div>
                 </div>
               </Card>
             )}
