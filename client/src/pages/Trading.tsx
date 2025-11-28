@@ -5,12 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ASSETS, generateData } from "@/lib/mockData";
 import { useState, useEffect, useRef } from "react";
-import { ComposedChart, Bar, Area, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line } from "recharts";
-import { ArrowDown, ArrowUp, TrendingUp, Activity, Clock, Users, Target, Trophy } from "lucide-react";
+import { ComposedChart, Bar, Area, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart, Line, ReferenceLine } from "recharts";
+import { ArrowDown, ArrowUp, TrendingUp, Activity, Clock, Users, Target, Trophy, Zap, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
 
 const TIME_FRAMES = [
   { label: "1m", value: 60 },
@@ -25,7 +24,9 @@ export default function Trading() {
   const [amount, setAmount] = useState("100");
   const [timeFrame, setTimeFrame] = useState(60);
   const [accountType, setAccountType] = useState<"demo" | "real">("demo");
-  const [balance, setBalance] = useState(10000.00);
+  const [demoBalance, setDemoBalance] = useState(1000.00);
+  const [realBalance, setRealBalance] = useState(0.00);
+  const [balance, setBalance] = useState(1000.00);
   const [lastPrice, setLastPrice] = useState(data[data.length - 1].close);
   const [priceChange, setPriceChange] = useState(0);
   const [activeTrade, setActiveTrade] = useState<any>(null);
@@ -37,9 +38,13 @@ export default function Trading() {
     { time: "14:45", wins: 70, losses: 30 },
     { time: "15:00", wins: 75, losses: 25 },
   ]);
-  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const entryPriceRef = useRef(lastPrice);
+
+  // Update balance based on account type
+  useEffect(() => {
+    setBalance(accountType === "demo" ? demoBalance : realBalance);
+  }, [accountType, demoBalance, realBalance]);
 
   // Live data simulation
   useEffect(() => {
@@ -62,7 +67,12 @@ export default function Trading() {
           close: newClose,
           high: Math.max(last.close, newClose),
           low: Math.min(last.close, newClose),
-          volume: Math.floor(Math.random() * 1000)
+          volume: Math.floor(Math.random() * 1000),
+          rsi: Math.random() * 100,
+          ma20: newClose + (Math.random() - 0.5) * 2,
+          ma50: newClose + (Math.random() - 0.5) * 3,
+          bb_upper: newClose + Math.random() * 2,
+          bb_lower: newClose - Math.random() * 2,
         };
         
         return [...prev.slice(1), newPoint];
@@ -96,7 +106,12 @@ export default function Trading() {
     const newBalance = balance + profit;
     const profitPercent = (profit / activeTrade.amount) * 100;
 
-    setBalance(newBalance);
+    if (accountType === "demo") {
+      setDemoBalance(newBalance);
+    } else {
+      setRealBalance(newBalance);
+    }
+    
     setTrades([
       {
         ...activeTrade,
@@ -137,7 +152,11 @@ export default function Trading() {
     }
 
     const newBalance = balance - tradeAmount;
-    setBalance(newBalance);
+    if (accountType === "demo") {
+      setDemoBalance(newBalance);
+    } else {
+      setRealBalance(newBalance);
+    }
     entryPriceRef.current = lastPrice;
 
     const trade = {
@@ -161,6 +180,10 @@ export default function Trading() {
   };
 
   const timeRemaining = activeTrade ? Math.max(0, Math.ceil(activeTrade.timeFrame - (Date.now() - activeTrade.startTime) / 1000)) : 0;
+  const latestCandle = data[data.length - 1];
+  const rsiValue = latestCandle.rsi || 50;
+  const rsiSignal = rsiValue > 70 ? "Overbought" : rsiValue < 30 ? "Oversold" : "Neutral";
+  const rsiColor = rsiValue > 70 ? "text-chart-down" : rsiValue < 30 ? "text-chart-up" : "text-muted-foreground";
 
   return (
     <Shell>
@@ -169,14 +192,20 @@ export default function Trading() {
         <div className="border-b border-border h-16 flex items-center justify-between px-6 bg-card/50 backdrop-blur-sm">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold font-display">Trading</h1>
-            <Badge variant={accountType === "demo" ? "outline" : "default"} className="cursor-pointer" onClick={() => setAccountType(accountType === "demo" ? "real" : "demo")}>
-              {accountType === "demo" ? "📚 Demo" : "💰 Real"}
+            <Badge 
+              variant={accountType === "demo" ? "outline" : "default"} 
+              className="cursor-pointer" 
+              onClick={() => setAccountType(accountType === "demo" ? "real" : "demo")}
+            >
+              {accountType === "demo" ? "📚 Demo (${demoBalance.toFixed(2)})" : `💰 Real (${realBalance > 0 ? "$" + realBalance.toFixed(2) : "Deposit to trade"})`}
             </Badge>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="text-xs text-muted-foreground">Balance</div>
-              <div className="text-2xl font-mono font-bold text-gold">${balance.toFixed(2)}</div>
+              <div className={cn("text-2xl font-mono font-bold", balance === 0 ? "text-chart-down" : "text-gold")}>
+                ${balance.toFixed(2)}
+              </div>
             </div>
           </div>
         </div>
@@ -184,71 +213,181 @@ export default function Trading() {
         <div className="flex-1 flex gap-6 overflow-hidden p-6">
           {/* Main Trading Area */}
           <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-            {/* Chart */}
-            <Card className="flex-1 flex flex-col overflow-hidden">
+            {/* Main Candlestick Chart */}
+            <Card className="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-background/80 to-background">
               {/* Asset & Price Bar */}
-              <div className="h-14 border-b border-border flex items-center px-4 gap-4 bg-accent/30">
-                <Select 
-                  value={selectedAsset.symbol} 
-                  onValueChange={(val) => setSelectedAsset(ASSETS.find(a => a.symbol === val) || ASSETS[0])}
-                >
-                  <SelectTrigger className="w-[180px] border-none bg-transparent focus:ring-0 text-lg font-bold">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {ASSETS.map(asset => (
-                      <SelectItem key={asset.symbol} value={asset.symbol}>
-                        {asset.symbol} - {asset.rate}%
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="h-16 border-b border-border flex items-center justify-between px-6 gap-4 bg-accent/30">
+                <div className="flex items-center gap-4">
+                  <Select 
+                    value={selectedAsset.symbol} 
+                    onValueChange={(val) => setSelectedAsset(ASSETS.find(a => a.symbol === val) || ASSETS[0])}
+                  >
+                    <SelectTrigger className="w-[200px] border-none bg-transparent focus:ring-0 text-lg font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[400px]">
+                      {ASSETS.map(asset => (
+                        <SelectItem key={asset.symbol} value={asset.symbol}>
+                          {asset.symbol} • {asset.type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <div className="ml-auto flex items-center gap-3">
-                  <Badge className={cn(priceChange >= 0 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400")}>
-                    {priceChange >= 0 ? "+" : ""}{priceChange.toFixed(2)}%
-                  </Badge>
-                  <div className="text-3xl font-mono font-bold">{lastPrice.toFixed(4)}</div>
+                <div className="ml-auto flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Badge className={cn(priceChange >= 0 ? "bg-chart-up/20 text-chart-up border-chart-up/30" : "bg-chart-down/20 text-chart-down border-chart-down/30", "border")}>
+                      {priceChange >= 0 ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
+                      {Math.abs(priceChange).toFixed(2)}%
+                    </Badge>
+                    <div className="text-3xl font-mono font-bold">{lastPrice.toFixed(4)}</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Candlestick Chart */}
+              {/* Main Candlestick Chart with Technical Indicators */}
               <div className="flex-1 w-full bg-gradient-to-b from-background/50 to-background p-4 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={data}>
+                  <ComposedChart data={data} margin={{ top: 20, right: 80, bottom: 20, left: 60 }}>
                     <defs>
                       <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.1} />
-                    <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                    <YAxis yAxisId="left" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                    <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                    <Bar dataKey="volume" fill="hsl(var(--primary))" opacity={0.1} yAxisId="right" />
-                    <Area yAxisId="left" type="monotone" dataKey="close" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorPrice)" isAnimationActive={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.15} vertical={false} />
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={11}
+                      tick={{ fill: "hsl(var(--muted-foreground))" }}
+                    />
+                    <YAxis 
+                      yAxisId="left"
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={11}
+                      tick={{ fill: "hsl(var(--muted-foreground))" }}
+                      domain={['auto', 'auto']}
+                    />
+                    <YAxis 
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="hsl(var(--muted-foreground))" 
+                      fontSize={11}
+                      tick={{ fill: "hsl(var(--muted-foreground))" }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '2px solid hsl(var(--primary))',
+                        borderRadius: '8px',
+                        padding: '10px',
+                      }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      formatter={(value: any) => {
+                        if (typeof value === 'number') return value.toFixed(4);
+                        return value;
+                      }}
+                    />
+                    
+                    {/* Bollinger Bands */}
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="bb_upper"
+                      stroke="hsl(var(--muted-foreground))"
+                      fill="none"
+                      isAnimationActive={false}
+                      strokeWidth={1}
+                      strokeDasharray="5,5"
+                    />
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="bb_lower"
+                      stroke="hsl(var(--muted-foreground))"
+                      fill="none"
+                      isAnimationActive={false}
+                      strokeWidth={1}
+                      strokeDasharray="5,5"
+                    />
+                    
+                    {/* Moving Averages */}
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="ma50"
+                      stroke="hsl(var(--chart-2))"
+                      strokeWidth={1.5}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="ma20"
+                      stroke="hsl(var(--chart-3))"
+                      strokeWidth={1.5}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                    
+                    {/* Price Area */}
+                    <Area 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="close" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2.5}
+                      fillOpacity={1} 
+                      fill="url(#colorPrice)" 
+                      isAnimationActive={false}
+                    />
+                    
+                    {/* Volume Bars */}
+                    <Bar dataKey="volume" fill="hsl(var(--primary))" opacity={0.15} yAxisId="right" />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </Card>
 
+            {/* Technical Analysis Indicators */}
+            <div className="grid grid-cols-4 gap-3">
+              <Card className="p-3 bg-accent/30 border-border">
+                <div className="text-xs text-muted-foreground mb-1">RSI (14)</div>
+                <div className={cn("text-lg font-bold", rsiColor)}>{rsiValue.toFixed(1)}</div>
+                <div className="text-xs text-muted-foreground">{rsiSignal}</div>
+              </Card>
+              <Card className="p-3 bg-accent/30 border-border">
+                <div className="text-xs text-muted-foreground mb-1">MA (20)</div>
+                <div className="text-lg font-bold text-primary">${(latestCandle.ma20 || lastPrice).toFixed(4)}</div>
+              </Card>
+              <Card className="p-3 bg-accent/30 border-border">
+                <div className="text-xs text-muted-foreground mb-1">MA (50)</div>
+                <div className="text-lg font-bold text-primary">${(latestCandle.ma50 || lastPrice).toFixed(4)}</div>
+              </Card>
+              <Card className="p-3 bg-accent/30 border-border">
+                <div className="text-xs text-muted-foreground mb-1">Volume</div>
+                <div className="text-lg font-bold">{(latestCandle.volume || 0).toLocaleString()}</div>
+              </Card>
+            </div>
+
             {/* Live Trades Chart */}
-            <Card className="h-40">
+            <Card className="h-32">
               <div className="p-3 border-b border-border flex items-center gap-2">
                 <Users className="w-4 h-4 text-gold" />
                 <span className="text-sm font-bold">Live Trading Results</span>
               </div>
               <div className="flex-1 p-2">
-                <ResponsiveContainer width="100%" height={100}>
+                <ResponsiveContainer width="100%" height={70}>
                   <LineChart data={liveTradesData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.1} />
                     <XAxis dataKey="time" fontSize={10} />
                     <YAxis fontSize={10} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="wins" stroke="#22c55e" dot={false} isAnimationActive={false} />
-                    <Line type="monotone" dataKey="losses" stroke="#ef4444" dot={false} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="wins" stroke="#22c55e" dot={false} isAnimationActive={false} strokeWidth={2} />
+                    <Line type="monotone" dataKey="losses" stroke="#ef4444" dot={false} isAnimationActive={false} strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -256,7 +395,7 @@ export default function Trading() {
           </div>
 
           {/* Trading Controls Sidebar */}
-          <div className="w-80 flex flex-col gap-4 overflow-y-auto">
+          <div className="w-80 flex flex-col gap-4 overflow-y-auto max-h-full">
             {/* Active Trade Info */}
             {activeTrade && (
               <Card className="border-yellow-500/50 bg-yellow-500/10">
@@ -271,15 +410,30 @@ export default function Trading() {
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span>Current:</span>
-                    <span className="font-mono">${lastPrice.toFixed(4)}</span>
+                    <span className={cn("font-mono", lastPrice > activeTrade.entryPrice ? "text-chart-up" : "text-chart-down")}>
+                      ${lastPrice.toFixed(4)}
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm font-bold">
+                  <div className="flex justify-between items-center text-sm font-bold text-lg">
                     <span>Time Left:</span>
-                    <span className="text-lg">{timeRemaining}s</span>
+                    <span>{timeRemaining}s</span>
                   </div>
                   <Button onClick={closeTrade} className="w-full mt-2" size="sm" variant="destructive">
                     Close Trade Early
                   </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* Real Account Warning */}
+            {accountType === "real" && realBalance === 0 && (
+              <Card className="border-orange-500/50 bg-orange-500/10 p-3">
+                <div className="flex gap-2 items-start">
+                  <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs text-orange-500/80">
+                    <p className="font-bold mb-1">Real Account Empty</p>
+                    <p>Deposit funds to start trading with real money</p>
+                  </div>
                 </div>
               </Card>
             )}
@@ -294,7 +448,7 @@ export default function Trading() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="text-xl font-bold h-12"
-                    disabled={!!activeTrade}
+                    disabled={!!activeTrade || balance === 0}
                   />
                 </div>
 
@@ -319,8 +473,8 @@ export default function Trading() {
                 <div className="grid grid-cols-2 gap-3">
                   <Button 
                     onClick={() => placeTrade("CALL")}
-                    disabled={!!activeTrade}
-                    className="h-20 flex flex-col gap-1 bg-chart-up hover:bg-chart-up/90 text-white border-none"
+                    disabled={!!activeTrade || balance === 0}
+                    className="h-20 flex flex-col gap-1 bg-chart-up hover:bg-chart-up/90 text-white border-none disabled:opacity-50"
                   >
                     <ArrowUp className="w-6 h-6" />
                     <span className="font-bold">CALL</span>
@@ -328,8 +482,8 @@ export default function Trading() {
                   </Button>
                   <Button 
                     onClick={() => placeTrade("PUT")}
-                    disabled={!!activeTrade}
-                    className="h-20 flex flex-col gap-1 bg-chart-down hover:bg-chart-down/90 text-white border-none"
+                    disabled={!!activeTrade || balance === 0}
+                    className="h-20 flex flex-col gap-1 bg-chart-down hover:bg-chart-down/90 text-white border-none disabled:opacity-50"
                   >
                     <ArrowDown className="w-6 h-6" />
                     <span className="font-bold">PUT</span>
@@ -348,7 +502,7 @@ export default function Trading() {
                 </div>
                 <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
                   {trades.slice(0, 8).map((trade) => (
-                    <div key={trade.id} className={cn("p-2 rounded text-xs", trade.status === "won" ? "bg-chart-up/10" : "bg-chart-down/10")}>
+                    <div key={trade.id} className={cn("p-2 rounded text-xs", trade.status === "won" ? "bg-chart-up/10 border border-chart-up/30" : "bg-chart-down/10 border border-chart-down/30")}>
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-bold">{trade.type} {trade.asset}</span>
                         <span className={cn("font-bold", trade.profit > 0 ? "text-chart-up" : "text-chart-down")}>
