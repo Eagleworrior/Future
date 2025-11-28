@@ -536,7 +536,7 @@ export default function Trading() {
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
-            </Card>
+            </div>
 
             {/* Market Analysis Charts */}
             <div className="grid grid-cols-3 gap-3 flex-shrink-0 h-48">
