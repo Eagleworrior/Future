@@ -497,6 +497,35 @@ export default function Trading() {
                     const priceDifference = lastPrice - trade.entryPrice;
                     const percentChange = ((priceDifference / trade.entryPrice) * 100).toFixed(2);
                     
+                    // Calculate live profit/loss based on trade direction
+                    const assetRate = selectedAsset.rate;
+                    let liveProfit = 0;
+                    let isWinning = false;
+                    
+                    if (trade.type === "CALL") {
+                      // CALL: betting price goes UP
+                      if (priceUp) {
+                        // Winning: price went up as expected
+                        liveProfit = trade.amount * (assetRate / 100);
+                        isWinning = true;
+                      } else {
+                        // Losing: price went down (opposite of prediction)
+                        liveProfit = -trade.amount;
+                        isWinning = false;
+                      }
+                    } else {
+                      // PUT: betting price goes DOWN
+                      if (!priceUp) {
+                        // Winning: price went down as expected
+                        liveProfit = trade.amount * (assetRate / 100);
+                        isWinning = true;
+                      } else {
+                        // Losing: price went up (opposite of prediction)
+                        liveProfit = -trade.amount;
+                        isWinning = false;
+                      }
+                    }
+                    
                     return (
                       <div key={trade.id} className={cn("border rounded p-3 transition-all", priceUp ? "border-chart-up/40 bg-chart-up/8" : "border-chart-down/40 bg-chart-down/8")}>
                         {/* Header with Direction Indicator */}
@@ -519,6 +548,14 @@ export default function Trading() {
                             </div>
                           </div>
                           <span className="text-yellow-400 font-mono text-xs">${trade.amount}</span>
+                        </div>
+
+                        {/* Live Profit/Loss Display */}
+                        <div className={cn("p-2 rounded mb-2 border-2 text-center font-bold", isWinning ? "bg-chart-up/20 border-chart-up/50 text-chart-up" : "bg-chart-down/20 border-chart-down/50 text-chart-down")}>
+                          <div className="text-xs text-muted-foreground mb-1">Live {isWinning ? "Profit" : "Loss"}</div>
+                          <div className="text-lg font-mono">
+                            {isWinning ? "+" : ""}{liveProfit.toFixed(2)} $
+                          </div>
                         </div>
 
                         {/* Price Section with Trend */}
