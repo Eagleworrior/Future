@@ -25,7 +25,7 @@ export default function Trading() {
   const [amount, setAmount] = useState("100");
   const [timeFrame, setTimeFrame] = useState(60);
   const [accountType, setAccountType] = useState<"demo" | "real">("demo");
-  const [balance, setBalance] = useState(1000.00);
+  const [balance, setBalance] = useState(10000.00);
   const [lastPrice, setLastPrice] = useState(data[data.length - 1].close);
   const [priceChange, setPriceChange] = useState(0);
   const [activeTrade, setActiveTrade] = useState<any>(null);

@@ -29,8 +29,8 @@ export default function Deposit() {
       return;
     }
 
-    if (parseFloat(amount) < 50) {
-      toast({ title: "Minimum deposit is $50", variant: "destructive" });
+    if (parseFloat(amount) < 10) {
+      toast({ title: "Minimum deposit is $10", variant: "destructive" });
       return;
     }
 
@@ -114,7 +114,7 @@ export default function Deposit() {
           <Card>
             <CardHeader>
               <CardTitle>Deposit Amount & Verification</CardTitle>
-              <CardDescription>Minimum deposit: $50 • Maximum: $50,000</CardDescription>
+              <CardDescription>Minimum deposit: $10 • Maximum: $50,000 • Demo account: $10,000 free</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {verified && (
@@ -134,14 +134,14 @@ export default function Deposit() {
                     type="number" 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    placeholder="100" 
-                    min="50"
+                    placeholder="10" 
+                    min="10"
                     max="50000"
                     className="text-xl h-12 pr-12"
                   />
                   <div className="absolute right-4 top-3 text-muted-foreground">USD</div>
                 </div>
-                <p className="text-xs text-muted-foreground">Min: $50 | Max: $50,000</p>
+                <p className="text-xs text-muted-foreground">Min: $10 | Max: $50,000</p>
               </div>
 
               <div className="space-y-2">

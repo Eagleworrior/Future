@@ -14,8 +14,9 @@ export function Shell({ children }: ShellProps) {
 
   const navItems = [
     { icon: TrendingUp, label: "Trade", href: "/" },
+    { icon: Users, label: "Leaderboard", href: "/leaderboard" },
     { icon: Wallet, label: "Deposit", href: "/deposit" },
-    { icon: LogOut, label: "Withdraw", href: "/withdraw" }, // Using LogOut icon for withdraw as metaphorical "money out"
+    { icon: LogOut, label: "Withdraw", href: "/withdraw" },
     { icon: Users, label: "Referral", href: "/referral" },
   ];
 
