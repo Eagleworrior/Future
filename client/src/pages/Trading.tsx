@@ -128,8 +128,66 @@ export default function Trading() {
     { time: "14:45", wins: 70, losses: 30 },
     { time: "15:00", wins: 75, losses: 25 },
   ]);
+  const [useSignals, setUseSignals] = useState(true);
+  const [currentSignal, setCurrentSignal] = useState<{type: "CALL" | "PUT", accuracy: number, strength: "Strong" | "Medium" | "Weak"} | null>(null);
   const { toast } = useToast();
   const entryPriceRef = useRef(lastPrice);
+
+  // Generate trading signals based on technical indicators
+  const generateSignal = (chartData: any[]) => {
+    if (chartData.length < 5) return null;
+    
+    const recent = chartData.slice(-5);
+    const latest = recent[recent.length - 1];
+    const prev = recent[0];
+    
+    // Calculate indicators
+    const rsi = latest.rsi || 50;
+    const ma20 = latest.ma20 || latest.close;
+    const ma50 = latest.ma50 || latest.close;
+    const currentPrice = latest.close;
+    
+    // Trend analysis
+    const priceUptrend = currentPrice > ma20 && ma20 > ma50;
+    const priceDowntrend = currentPrice < ma20 && ma20 < ma50;
+    const priceMomentum = (currentPrice - prev.close) / prev.close * 100;
+    
+    let signal: "CALL" | "PUT" | null = null;
+    let accuracy = 50;
+    let strength: "Strong" | "Medium" | "Weak" = "Weak";
+    
+    // CALL Signal Conditions
+    if (priceUptrend && rsi > 45 && rsi < 70) {
+      signal = "CALL";
+      accuracy = 72 + (rsi - 45) * 0.3;
+      strength = rsi > 60 ? "Strong" : rsi > 50 ? "Medium" : "Weak";
+    } else if (rsi < 30 && priceMomentum > 1) {
+      signal = "CALL";
+      accuracy = 65 + priceMomentum * 2;
+      strength = priceMomentum > 3 ? "Strong" : "Medium";
+    }
+    
+    // PUT Signal Conditions
+    if (priceDowntrend && rsi < 55 && rsi > 30) {
+      signal = "PUT";
+      accuracy = 72 - (rsi - 30) * 0.3;
+      strength = rsi < 40 ? "Strong" : rsi < 50 ? "Medium" : "Weak";
+    } else if (rsi > 70 && priceMomentum < -1) {
+      signal = "PUT";
+      accuracy = 65 + Math.abs(priceMomentum) * 2;
+      strength = Math.abs(priceMomentum) > 3 ? "Strong" : "Medium";
+    }
+    
+    if (signal) {
+      return {
+        type: signal,
+        accuracy: Math.min(95, Math.max(55, accuracy)),
+        strength
+      };
+    }
+    
+    return null;
+  };
 
   // Update balance based on account type
   useEffect(() => {
@@ -145,7 +203,7 @@ export default function Trading() {
     localStorage.setItem('realBalance', realBalance.toString());
   }, [realBalance]);
 
-  // Live data simulation
+  // Live data simulation with signal generation
   useEffect(() => {
     const interval = setInterval(() => {
       setData(prev => {
@@ -174,7 +232,13 @@ export default function Trading() {
           bb_lower: newClose - Math.random() * 2,
         };
         
-        return [...prev.slice(1), newPoint];
+        const newData = [...prev.slice(1), newPoint];
+        
+        // Generate signal from new data
+        const signal = generateSignal(newData);
+        setCurrentSignal(signal);
+        
+        return newData;
       });
     }, 800);
     return () => clearInterval(interval);
@@ -539,6 +603,66 @@ export default function Trading() {
                 </div>
               </Card>
             </div>
+
+            {/* Trading Signals */}
+            <Card className="border-2 border-accent/50 bg-gradient-to-r from-accent/20 to-primary/10 p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    🎯 AI Trading Signals
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">Advanced analysis-based trade recommendations</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium">{useSignals ? "ON" : "OFF"}</span>
+                  <Button
+                    size="sm"
+                    variant={useSignals ? "default" : "outline"}
+                    onClick={() => setUseSignals(!useSignals)}
+                    className="w-12 h-6 p-0"
+                  >
+                    <div className={cn("w-5 h-5 rounded-full bg-white transition-transform", useSignals ? "translate-x-1" : "-translate-x-1")} />
+                  </Button>
+                </div>
+              </div>
+
+              {currentSignal ? (
+                <div className={cn("p-3 rounded-lg border-2 text-center", currentSignal.type === "CALL" ? "border-chart-up/50 bg-chart-up/15" : "border-chart-down/50 bg-chart-down/15")}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className={cn("px-3 py-1 rounded font-bold text-white text-sm", currentSignal.type === "CALL" ? "bg-chart-up" : "bg-chart-down")}>
+                        {currentSignal.type === "CALL" ? "📈 CALL" : "📉 PUT"}
+                      </div>
+                      <Badge className={currentSignal.strength === "Strong" ? "bg-accent" : currentSignal.strength === "Medium" ? "bg-primary/50" : "bg-muted"}>
+                        {currentSignal.strength}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Accuracy:</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-background/50 rounded-full overflow-hidden">
+                        <div 
+                          className={cn("h-full transition-all", currentSignal.type === "CALL" ? "bg-chart-up" : "bg-chart-down")}
+                          style={{ width: `${currentSignal.accuracy}%` }}
+                        />
+                      </div>
+                      <span className="font-bold text-sm min-w-12">{currentSignal.accuracy.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                  {useSignals && (
+                    <p className="text-xs text-muted-foreground mt-2">✓ Signal-based trades are active</p>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg border border-border bg-muted/30 text-center text-xs text-muted-foreground">
+                  Analyzing market conditions... No clear signal detected yet
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-3">
+                💡 Tip: Use signals as guidance. Always manage your risk and trade responsibly. Past accuracy doesn't guarantee future results.
+              </p>
+            </Card>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-4 gap-3 flex-shrink-0">
