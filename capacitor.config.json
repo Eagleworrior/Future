@@ -1,0 +1,10 @@
+{
+  "appId": "com.experttrade.app",
+  "appName": "Expert Trade",
+  "webDir": "dist/public",
+  "plugins": {},
+  "server": {
+    "url": "http://localhost:5000",
+    "cleartext": true
+  }
+}
