@@ -346,7 +346,9 @@ export default function Trading() {
     // Profit calculation:
     // WIN: Return original bet + payout profit to balance
     // LOSS: Balance already deducted - no additional deduction
-    const profit = isWin ? activeTrade.amount * (selectedAsset.rate / 100) : 0;
+    // Use the payout rate stored with the trade, not the current asset rate
+    const payoutRate = activeTrade.payoutRate || selectedAsset.rate;
+    const profit = isWin ? activeTrade.amount * (payoutRate / 100) : 0;
     const newBalance = isWin ? (balance + activeTrade.amount + profit) : balance;
     const profitPercent = isWin ? ((profit / activeTrade.amount) * 100) : -100;
 
@@ -408,6 +410,7 @@ export default function Trading() {
       startTime: Date.now(),
       accountType,
       createdAt: new Date().toLocaleTimeString(),
+      payoutRate: selectedAsset.rate,
     };
 
     setActiveTrades([...activeTrades, trade]);
