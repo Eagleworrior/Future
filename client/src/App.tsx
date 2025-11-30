@@ -12,6 +12,9 @@ import Withdraw from "@/pages/Withdraw";
 import Referral from "@/pages/Referral";
 import Leaderboard from "@/pages/Leaderboard";
 import Badges from "@/pages/Badges";
+import { Tournaments } from "@/pages/Tournaments";
+import { EconomicCalendar } from "@/pages/EconomicCalendar";
+import { RiskManagement } from "@/pages/RiskManagement";
 
 function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   if (!isAuthenticated) {
@@ -30,6 +33,9 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/deposit" component={Deposit} />
       <Route path="/withdraw" component={Withdraw} />
       <Route path="/referral" component={Referral} />
+      <Route path="/tournaments" component={Tournaments} />
+      <Route path="/calendar" component={EconomicCalendar} />
+      <Route path="/risk" component={RiskManagement} />
       <Route component={NotFound} />
     </Switch>
   );
