@@ -458,24 +458,24 @@ export default function Trading() {
 
   return (
     <Shell>
-      <div className="h-full w-full flex flex-col overflow-hidden bg-black">
+      <div className="h-full w-full flex flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-black">
         {/* Professional Header - Pocket Option Style */}
-        <div className="border-b border-slate-700 h-14 flex items-center justify-between px-6 bg-slate-900/95 backdrop-blur-sm flex-shrink-0">
+        <div className="border-b border-slate-600/40 h-14 flex items-center justify-between px-6 bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-slate-950/95 backdrop-blur-xl flex-shrink-0 shadow-2xl">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">🦅</span>
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/50 hover:shadow-yellow-500/75 transition-all">
+                <span className="text-white font-bold text-base">🦅</span>
               </div>
-              <span className="font-bold text-white text-lg">Expert Trade</span>
+              <span className="font-bold text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 bg-clip-text text-lg">Expert Trade</span>
             </div>
-            <div className="h-6 w-px bg-slate-700"></div>
+            <div className="h-6 w-px bg-gradient-to-b from-slate-600/0 via-slate-600/50 to-slate-600/0"></div>
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setAccountType(accountType === "demo" ? "real" : "demo")}
-                className={cn("px-4 py-1.5 rounded text-sm font-medium transition-all cursor-pointer", 
+                className={cn("px-4 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer duration-300 transform hover:scale-105", 
                   accountType === "demo" 
-                    ? "bg-blue-600/20 text-blue-400 border border-blue-500/30" 
-                    : "bg-green-600/20 text-green-400 border border-green-500/30"
+                    ? "bg-gradient-to-r from-blue-600/30 to-blue-500/20 text-blue-300 border border-blue-400/40 shadow-lg shadow-blue-500/20" 
+                    : "bg-gradient-to-r from-green-600/30 to-green-500/20 text-green-300 border border-green-400/40 shadow-lg shadow-green-500/20"
                 )}
               >
                 {accountType === "demo" ? "📚 Demo" : "💰 Real"}
@@ -485,22 +485,22 @@ export default function Trading() {
           </div>
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <div className="text-xs text-slate-500 mb-0.5">Account Balance</div>
-              <div className={cn("text-xl font-mono font-bold", balance >= 1000 ? "text-green-400" : balance > 0 ? "text-yellow-400" : "text-red-400")}>
+              <div className="text-xs text-slate-400 mb-0.5">Account Balance</div>
+              <div className={cn("text-xl font-mono font-bold drop-shadow-lg", balance >= 1000 ? "text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.6)]" : balance > 0 ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.6)]" : "text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.6)]")}>
                 ${balance.toFixed(2)}
               </div>
             </div>
-            <div className="px-3 py-1 rounded bg-yellow-500/20 border border-yellow-500/40">
-              <span className="text-xs font-bold text-yellow-400">⭐ PREMIUM</span>
+            <div className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-yellow-500/30 to-orange-500/20 border border-yellow-400/50 shadow-lg shadow-yellow-500/30">
+              <span className="text-xs font-bold text-yellow-300">⭐ PREMIUM</span>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 flex gap-4 overflow-hidden p-4 bg-slate-950">
+        <div className="flex-1 flex gap-4 overflow-hidden p-4 bg-gradient-to-br from-slate-950 to-black">
           {/* Main Trading Area */}
           <div className="flex-1 flex flex-col gap-3 overflow-hidden">
             {/* Main Candlestick Chart */}
-            <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/50 rounded-lg border border-slate-700">
+            <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-slate-900/70 to-slate-950/80 rounded-xl border border-slate-600/40 shadow-2xl hover:shadow-blue-500/20 transition-shadow duration-300">
               {/* Asset & Price Bar */}
               <div className="h-14 border-b border-slate-700 flex items-center justify-between px-5 gap-4 bg-slate-900/80 flex-shrink-0 rounded-t-lg">
                 <div className="flex items-center gap-4">
