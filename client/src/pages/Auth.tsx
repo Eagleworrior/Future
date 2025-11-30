@@ -31,24 +31,14 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        // Login logic
+        // Login validation
         if (!formData.username || !formData.password) {
           toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
           setLoading(false);
           return;
         }
-        localStorage.setItem("user", JSON.stringify({
-          id: "user_123",
-          username: formData.username,
-          email: formData.email || `${formData.username}@expert.trade`,
-          demoBalance: 1000,
-          realBalance: 0,
-          isPremium: false,
-          loyaltyPoints: 0
-        }));
-        toast({ title: "Success", description: "Welcome back to ExpertTrade!" });
       } else {
-        // Signup logic
+        // Signup validation
         if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
           toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
           setLoading(false);
@@ -64,19 +54,30 @@ export default function Auth() {
           setLoading(false);
           return;
         }
-        localStorage.setItem("user", JSON.stringify({
-          id: "user_" + Date.now(),
-          username: formData.username,
-          email: formData.email,
-          demoBalance: 1000,
-          realBalance: 0,
-          isPremium: false,
-          loyaltyPoints: 20
-        }));
+      }
+
+      // Create user data
+      const userData = {
+        id: isLogin ? "user_123" : "user_" + Date.now(),
+        username: formData.username,
+        email: formData.email || `${formData.username}@expert.trade`,
+        demoBalance: 1000,
+        realBalance: 0,
+        isPremium: false,
+        loyaltyPoints: isLogin ? 0 : 20
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      if (isLogin) {
+        toast({ title: "Success", description: "Welcome back to ExpertTrade!" });
+      } else {
         toast({ title: "Success", description: "Account created! Welcome to ExpertTrade!" });
       }
-      
-      setTimeout(() => navigate("/"), 1000);
+
+      // Dispatch storage event to update auth state and navigate to dashboard immediately
+      window.dispatchEvent(new Event("storage"));
+      navigate("/");
     } finally {
       setLoading(false);
     }
