@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Trading from "@/pages/Trading";
+import Setup from "@/pages/Setup";
 import Deposit from "@/pages/Deposit";
 import Withdraw from "@/pages/Withdraw";
 import Referral from "@/pages/Referral";
@@ -29,6 +30,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/setup" component={Setup} />
       <Route path="/trade" component={Trading} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/badges" component={Badges} />

@@ -75,9 +75,11 @@ export default function Auth() {
         toast({ title: "Success", description: "Account created! Welcome to ExpertTrade!" });
       }
 
-      // Dispatch storage event to update auth state and navigate to dashboard immediately
+      // Dispatch storage event to update auth state and navigate to setup for new users
       window.dispatchEvent(new Event("storage"));
-      navigate("/");
+      // New users go to setup, returning users go to dashboard
+      const isNewUser = !isLogin;
+      navigate(isNewUser ? "/setup" : "/");
     } finally {
       setLoading(false);
     }
