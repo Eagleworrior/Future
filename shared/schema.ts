@@ -101,3 +101,51 @@ export const insertWithdrawalSchema = createInsertSchema(withdrawals).pick({
 
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
 export type Withdrawal = typeof withdrawals.$inferSelect;
+
+// Tournaments table
+export const tournaments = pgTable("tournaments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  prizePool: numeric("prize_pool", { precision: 12, scale: 2 }).notNull(),
+  status: varchar("status", { length: 20 }).default("upcoming"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  entryFee: numeric("entry_fee", { precision: 10, scale: 2 }).default("0"),
+  maxParticipants: integer("max_participants"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTournamentSchema = createInsertSchema(tournaments).pick({
+  name: true,
+  description: true,
+  prizePool: true,
+  startTime: true,
+  endTime: true,
+  entryFee: true,
+  maxParticipants: true,
+});
+
+export type InsertTournament = z.infer<typeof insertTournamentSchema>;
+export type Tournament = typeof tournaments.$inferSelect;
+
+// Tournament Participants table
+export const tournamentParticipants = pgTable("tournament_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tournamentId: varchar("tournament_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 }).notNull(),
+  profit: numeric("profit", { precision: 10, scale: 2 }).default("0"),
+  profitPercent: numeric("profit_percent", { precision: 5, scale: 2 }).default("0"),
+  tradeCount: integer("trade_count").default(0),
+  winCount: integer("win_count").default(0),
+  rank: integer("rank"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const insertTournamentParticipantSchema = createInsertSchema(tournamentParticipants).pick({
+  tournamentId: true,
+  userId: true,
+});
+
+export type InsertTournamentParticipant = z.infer<typeof insertTournamentParticipantSchema>;
+export type TournamentParticipant = typeof tournamentParticipants.$inferSelect;
