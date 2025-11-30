@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
 import Trading from "@/pages/Trading";
 import Deposit from "@/pages/Deposit";
 import Withdraw from "@/pages/Withdraw";
@@ -27,7 +28,8 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
 
   return (
     <Switch>
-      <Route path="/" component={Trading} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/trade" component={Trading} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/badges" component={Badges} />
       <Route path="/deposit" component={Deposit} />

@@ -19,7 +19,9 @@ export function Shell({ children }: ShellProps) {
   };
 
   const navItems = [
-    { icon: TrendingUp, label: "Trade", href: "/" },
+    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: TrendingUp, label: "Trade", href: "/trade" },
+    { icon: Trophy, label: "Tournaments", href: "/tournaments" },
     { icon: Users, label: "Leaderboard", href: "/leaderboard" },
     { icon: Users, label: "Badges", href: "/badges" },
     { icon: Wallet, label: "Deposit", href: "/deposit" },
