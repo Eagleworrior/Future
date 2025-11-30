@@ -90,6 +90,10 @@ const playLossSound = () => {
 };
 
 const TIME_FRAMES = [
+  { label: "5s", value: 5 },
+  { label: "10s", value: 10 },
+  { label: "15s", value: 15 },
+  { label: "30s", value: 30 },
   { label: "1m", value: 60 },
   { label: "3m", value: 180 },
   { label: "5m", value: 300 },
@@ -163,7 +167,7 @@ export default function Trading() {
   const [data, setData] = useState(generateData(50));
   const [selectedAsset, setSelectedAsset] = useState(ASSETS[0]);
   const [amount, setAmount] = useState("100");
-  const [timeFrame, setTimeFrame] = useState(60);
+  const [timeFrame, setTimeFrame] = useState(5);
   const [accountType, setAccountType] = useState<"demo" | "real">("demo");
   const [demoBalance, setDemoBalance] = useState(() => {
     if (typeof window !== 'undefined') {
