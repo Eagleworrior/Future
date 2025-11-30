@@ -96,6 +96,69 @@ const TIME_FRAMES = [
   { label: "10m", value: 600 },
 ];
 
+// Candlestick Pattern Detection
+const detectCandlestickPatterns = (chartData: any[]) => {
+  if (chartData.length < 3) return [];
+  
+  const patterns: Array<{name: string, confidence: number, direction: "BULLISH" | "BEARISH", icon: string}> = [];
+  const latest = chartData[chartData.length - 1];
+  const prev1 = chartData[chartData.length - 2];
+  const prev2 = chartData[chartData.length - 3];
+  
+  // Engulfing Pattern
+  if (prev1.close > prev1.open && latest.open < latest.close && 
+      latest.open < prev1.open && latest.close > prev1.close) {
+    patterns.push({ name: "Bullish Engulfing", confidence: 85, direction: "BULLISH", icon: "📈" });
+  }
+  if (prev1.close < prev1.open && latest.open > latest.close && 
+      latest.open > prev1.open && latest.close < prev1.close) {
+    patterns.push({ name: "Bearish Engulfing", confidence: 85, direction: "BEARISH", icon: "📉" });
+  }
+  
+  // Hammer Pattern (small body, long lower wick)
+  if (latest.close > latest.open && (latest.low < latest.open - (latest.close - latest.open) * 2)) {
+    patterns.push({ name: "Hammer", confidence: 72, direction: "BULLISH", icon: "🔨" });
+  }
+  
+  // Shooting Star (small body, long upper wick)
+  if (latest.close < latest.open && (latest.high > latest.close + (latest.open - latest.close) * 2)) {
+    patterns.push({ name: "Shooting Star", confidence: 72, direction: "BEARISH", icon: "⭐" });
+  }
+  
+  // Doji (open ≈ close)
+  if (Math.abs(latest.close - latest.open) < (latest.high - latest.low) * 0.1) {
+    patterns.push({ name: "Doji", confidence: 65, direction: "BULLISH", icon: "十" });
+  }
+  
+  // Double Top Pattern (price peaks)
+  if (prev2.close < prev2.high && prev1.close < prev1.high && 
+      Math.abs(prev2.high - prev1.high) < (prev2.high * 0.01) && 
+      latest.close < prev2.high) {
+    patterns.push({ name: "Double Top", confidence: 78, direction: "BEARISH", icon: "🏔️" });
+  }
+  
+  // Double Bottom Pattern (price valleys)
+  if (prev2.close > prev2.low && prev1.close > prev1.low && 
+      Math.abs(prev2.low - prev1.low) < (prev2.low * 0.01) && 
+      latest.close > prev2.low) {
+    patterns.push({ name: "Double Bottom", confidence: 78, direction: "BULLISH", icon: "⛰️" });
+  }
+  
+  // Triangle Pattern (converging highs and lows)
+  if (prev2.high > prev1.high && prev1.high > latest.high &&
+      prev2.low < prev1.low && prev1.low < latest.low) {
+    patterns.push({ name: "Descending Triangle", confidence: 70, direction: "BEARISH", icon: "📐" });
+  }
+  
+  // Flag Pattern (consolidation after trend)
+  if (prev2.close > prev2.open && latest.close > latest.open && 
+      Math.abs(latest.close - prev1.close) < Math.abs(prev2.close - prev2.open) * 0.3) {
+    patterns.push({ name: "Bullish Flag", confidence: 68, direction: "BULLISH", icon: "🚩" });
+  }
+  
+  return patterns;
+};
+
 export default function Trading() {
   const [data, setData] = useState(generateData(50));
   const [selectedAsset, setSelectedAsset] = useState(ASSETS[0]);
@@ -130,6 +193,7 @@ export default function Trading() {
   ]);
   const [useSignals, setUseSignals] = useState(true);
   const [currentSignal, setCurrentSignal] = useState<{type: "CALL" | "PUT", accuracy: number, strength: "Strong" | "Medium" | "Weak"} | null>(null);
+  const [detectedPatterns, setDetectedPatterns] = useState<any[]>([]);
   const { toast } = useToast();
   const entryPriceRef = useRef(lastPrice);
 
@@ -666,6 +730,41 @@ export default function Trading() {
                 </div>
               </Card>
             </div>
+
+            {/* Candlestick Patterns */}
+            <Card className="border-2 border-purple-500/50 bg-gradient-to-r from-purple-500/15 to-pink-500/10 p-4">
+              <div className="mb-3">
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  📊 Candlestick Patterns
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Live pattern detection from price action</p>
+              </div>
+
+              {detectedPatterns.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2">
+                  {detectedPatterns.slice(0, 3).map((pattern, idx) => (
+                    <div key={idx} className={cn("p-2 rounded-lg border flex items-center justify-between text-xs", pattern.direction === "BULLISH" ? "border-chart-up/40 bg-chart-up/10" : "border-chart-down/40 bg-chart-down/10")}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{pattern.icon}</span>
+                        <div>
+                          <div className="font-bold">{pattern.name}</div>
+                          <div className={cn("text-xs font-bold", pattern.direction === "BULLISH" ? "text-chart-up" : "text-chart-down")}>
+                            {pattern.direction}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-2 py-1 rounded bg-white/10 text-white font-bold">
+                        {pattern.confidence}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-3 text-center text-xs text-muted-foreground bg-secondary/30 rounded">
+                  🔍 No significant patterns detected yet
+                </div>
+              )}
+            </Card>
 
             {/* Trading Signals */}
             <Card className="border-2 border-accent/50 bg-gradient-to-r from-accent/20 to-primary/10 p-4">
