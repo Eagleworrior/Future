@@ -53,19 +53,19 @@ export function Shell({ children }: ShellProps) {
 
         <nav className="p-4 space-y-2">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <a 
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group",
-                  location === item.href 
-                    ? "bg-primary/10 text-primary border-l-4 border-primary font-medium" 
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                )}
-                onClick={() => setIsOpen(false)}
-              >
-                <item.icon className={cn("w-5 h-5", location === item.href && "text-primary")} />
-                {item.label}
-              </a>
+            <Link 
+              key={item.href} 
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group block",
+                location === item.href 
+                  ? "bg-primary/10 text-primary border-l-4 border-primary font-medium" 
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+              onClick={() => setIsOpen(false)}
+            >
+              <item.icon className={cn("w-5 h-5", location === item.href && "text-primary")} />
+              {item.label}
             </Link>
           ))}
         </nav>

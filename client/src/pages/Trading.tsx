@@ -432,11 +432,11 @@ export default function Trading() {
           </div>
         </div>
 
-        <div className="flex-1 flex gap-4 overflow-hidden p-4 min-h-0 bg-slate-950">
+        <div className="flex-1 flex gap-4 overflow-hidden p-4 bg-slate-950">
           {/* Main Trading Area */}
-          <div className="flex-1 flex flex-col gap-3 overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col gap-3 overflow-hidden">
             {/* Main Candlestick Chart */}
-            <div className="flex-1 flex flex-col overflow-hidden min-h-0 bg-slate-900/50 rounded-lg border border-slate-700">
+            <div className="flex-1 flex flex-col overflow-hidden bg-slate-900/50 rounded-lg border border-slate-700">
               {/* Asset & Price Bar */}
               <div className="h-14 border-b border-slate-700 flex items-center justify-between px-5 gap-4 bg-slate-900/80 flex-shrink-0 rounded-t-lg">
                 <div className="flex items-center gap-4">
