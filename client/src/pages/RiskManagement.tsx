@@ -183,7 +183,7 @@ export function RiskManagement() {
                 <Input
                   type="number"
                   value={settings.maxOpenTrades}
-                  onChange={(e) => setSettings({ ...settings, maxOpenTrades: parseInt(e.target.value) })}
+                  onChange={(e: any) => setSettings({ ...settings, maxOpenTrades: parseInt(e.target.value) })}
                   className="flex-1"
                 />
               </div>
@@ -209,7 +209,7 @@ export function RiskManagement() {
                 <span className="flex items-center px-3 bg-secondary/30 rounded">%</span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Get alert when winning trades < target</p>
+            <p className="text-xs text-muted-foreground">Get alert when winning trades {"<"} target</p>
           </Card>
         </div>
 
