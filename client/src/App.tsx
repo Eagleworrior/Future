@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Auth from "@/pages/Auth";
 import Landing from "@/pages/Landing";
+import QRCodePage from "@/pages/QRCode";
 import Dashboard from "@/pages/Dashboard";
 import Trading from "@/pages/Trading";
 import Setup from "@/pages/Setup";
@@ -43,6 +44,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/tournaments" component={Tournaments} />
       <Route path="/calendar" component={EconomicCalendar} />
       <Route path="/risk" component={RiskManagement} />
+      <Route path="/qr" component={QRCodePage} />
       <Route component={NotFound} />
     </Switch>
   );
