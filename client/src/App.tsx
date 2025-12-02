@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Auth from "@/pages/Auth";
 import Landing from "@/pages/Landing";
 import QRCodePage from "@/pages/QRCode";
+import AdSettings from "@/pages/AdSettings";
 import Dashboard from "@/pages/Dashboard";
 import Trading from "@/pages/Trading";
 import Setup from "@/pages/Setup";
@@ -45,6 +46,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/calendar" component={EconomicCalendar} />
       <Route path="/risk" component={RiskManagement} />
       <Route path="/qr" component={QRCodePage} />
+      <Route path="/ads" component={AdSettings} />
       <Route component={NotFound} />
     </Switch>
   );
