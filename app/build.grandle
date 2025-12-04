@@ -1,0 +1,53 @@
+
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.Experttrade'
+    compileSdk 34
+
+    signingConfigs {
+        release {
+            // These details will be loaded from a local.properties file
+            // to keep them out of version control.
+            storeFile file(System.getenv("KEYSTORE_FILE") ?: project.findProperty("keystore.file"))
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: project.findProperty("keystore.password")
+            keyAlias System.getenv("KEYSTORE_ALIAS") ?: project.findProperty("keystore.alias")
+            keyPassword System.getenv("KEYSTORE_KEY_PASSWORD") ?: project.findProperty("keystore.key.password")
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.Experttrade"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.gms:play-services-ads:23.0.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+

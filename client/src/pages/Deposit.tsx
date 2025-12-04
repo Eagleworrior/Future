@@ -15,7 +15,7 @@ export default function Deposit() {
   const [transactionCode, setTransactionCode] = useState("");
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState("ncba");
+  const [selectedMethod, setSelectedMethod] = useState("safaricom");
   const { toast } = useToast();
 
   const copyToClipboard = (text: string) => {
@@ -27,12 +27,12 @@ export default function Deposit() {
 
   const verifyDeposit = async () => {
     if (!transactionCode || transactionCode.trim() === "") {
-      toast({ title: "Error: No transaction code", description: "Please enter your NCBA transaction code", variant: "destructive" });
+      toast({ title: "Error: No transaction code", description: "Please enter your Safaricom transaction code", variant: "destructive" });
       return;
     }
 
-    if (transactionCode.length < 6) {
-      toast({ title: "Invalid code", description: "Transaction code must be at least 6 characters", variant: "destructive" });
+    if (transactionCode.length < 10) {
+      toast({ title: "Invalid code", description: "Transaction code must be at least 10 characters", variant: "destructive" });
       return;
     }
 
@@ -44,74 +44,60 @@ export default function Deposit() {
 
     setLoading(true);
 
-    const transactionLedger = JSON.parse(localStorage.getItem('transactionLedger') || '[]');
-    const isDuplicate = transactionLedger.some((t: any) => t.code === transactionCode.toUpperCase());
-    
-    if (isDuplicate) {
-      toast({ 
-        title: "Duplicate Transaction", 
-        description: "This transaction code has already been verified. Cannot process duplicate deposits.",
-        variant: "destructive" 
-      });
-      setLoading(false);
-      return;
+    try {
+        const response = await fetch('/api/verify-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ transactionCode }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Verification failed');
+        }
+
+        // Assuming successful verification, update the balance
+        const currentBalance = parseFloat(localStorage.getItem('realBalance') || '0');
+        const newBalance = currentBalance + depositAmount;
+        localStorage.setItem('realBalance', newBalance.toString());
+
+        setVerified(true);
+        toast({
+            title: "✓ Deposit Verified & Credited!",
+            description: `$${depositAmount.toFixed(2)} has been received and added to your account`,
+        });
+
+        setTimeout(() => {
+            setAmount("100");
+            setTransactionCode("");
+            setVerified(false);
+        }, 3000);
+
+    } catch (error: any) {
+        toast({
+            title: "Verification Failed",
+            description: error.message || "An unknown error occurred.",
+            variant: "destructive",
+        });
+    } finally {
+        setLoading(false);
     }
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const isValidTransaction = transactionCode.length >= 6 && 
-                                depositAmount > 0 && 
-                                /^[A-Z0-9]+$/.test(transactionCode);
-
-    if (!isValidTransaction) {
-      toast({ 
-        title: "Verification Failed", 
-        description: "Transaction code could not be verified with NCBA. Please check and try again.",
-        variant: "destructive" 
-      });
-      setLoading(false);
-      return;
-    }
-
-    const newTransaction = {
-      code: transactionCode.toUpperCase(),
-      amount: depositAmount,
-      timestamp: new Date().toISOString(),
-      status: "verified"
-    };
-    transactionLedger.push(newTransaction);
-    localStorage.setItem('transactionLedger', JSON.stringify(transactionLedger));
-
-    const currentBalance = parseFloat(localStorage.getItem('realBalance') || '0');
-    const newBalance = currentBalance + depositAmount;
-    localStorage.setItem('realBalance', newBalance.toString());
-
-    setVerified(true);
-    toast({
-      title: "✓ Deposit Verified & Credited!",
-      description: `$${depositAmount.toFixed(2)} has been received from NCBA and added to your account`,
-    });
-
-    setTimeout(() => {
-      setAmount("100");
-      setTransactionCode("");
-      setVerified(false);
-    }, 3000);
-
-    setLoading(false);
   };
 
   const paymentMethods = [
     {
-      id: "ncba",
-      name: "NCBA M-Pesa",
+      id: "safaricom",
+      name: "Safaricom M-Pesa",
       icon: "🏦",
-      description: "Secure bank transfer via NCBA",
+      description: "Secure mobile payment via Safaricom",
       fees: "0%",
       time: "Instant",
-      color: "from-blue-600 to-blue-400",
-      borderColor: "border-blue-500/50",
-      bgColor: "bg-blue-500/10",
+      color: "from-green-600 to-green-400",
+      borderColor: "border-green-500/50",
+      bgColor: "bg-green-500/10",
     },
     {
       id: "credit",
@@ -162,7 +148,7 @@ export default function Deposit() {
     <Shell>
       <div className="w-full space-y-8 pb-10">
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900/50 to-slate-900 border border-blue-500/30 p-8 md:p-12">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-green-900/50 to-slate-900 border border-green-500/30 p-8 md:p-12">
           <div className="absolute inset-0 bg-grid-small-white/[0.03] opacity-100"></div>
           <div className="relative">
             <div className="flex items-start justify-between mb-6">
@@ -272,7 +258,7 @@ export default function Deposit() {
                 <Check className="w-6 h-6 text-chart-up flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-bold text-chart-up text-lg">✓ Verified & Credited!</p>
-                  <p className="text-sm text-chart-up/80">Your deposit of ${amount} has been successfully verified with NCBA and added to your real trading account.</p>
+                  <p className="text-sm text-chart-up/80">Your deposit of ${amount} has been successfully verified with Safaricom and added to your real trading account.</p>
                 </div>
               </div>
             )}
@@ -320,20 +306,20 @@ export default function Deposit() {
               </div>
             </div>
 
-            {selectedMethod === "ncba" && (
+            {selectedMethod === "safaricom" && (
               <>
-                {/* NCBA Payment Instructions */}
-                <div className="p-5 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-4">
+                {/* Safaricom Payment Instructions */}
+                <div className="p-5 rounded-lg bg-green-500/10 border border-green-500/30 space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="text-2xl">🏦</div>
+                    <div className="text-2xl">📱</div>
                     <div>
-                      <h4 className="font-bold text-blue-300 mb-1">NCBA Bank Transfer</h4>
-                      <p className="text-xs text-blue-200/80">Send money using NCBA M-Pesa to the account details below</p>
+                      <h4 className="font-bold text-green-300 mb-1">Safaricom M-Pesa Transfer</h4>
+                      <p className="text-xs text-green-200/80">Send money using Safaricom M-Pesa to the account details below</p>
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-3">
-                    <div className="p-4 rounded-lg bg-background/50 border border-blue-500/20">
+                    <div className="p-4 rounded-lg bg-background/50 border border-green-500/20">
                       <div className="text-xs text-muted-foreground mb-2 font-bold">Paybill Number</div>
                       <div className="flex items-center justify-between gap-2">
                         <div className="text-2xl font-mono font-bold text-primary tracking-wider">880100</div>
@@ -348,7 +334,7 @@ export default function Deposit() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-lg bg-background/50 border border-blue-500/20">
+                    <div className="p-4 rounded-lg bg-background/50 border border-green-500/20">
                       <div className="text-xs text-muted-foreground mb-2 font-bold">Account Number</div>
                       <div className="flex items-center justify-between gap-2">
                         <div className="text-2xl font-mono font-bold text-primary tracking-wider">1004508555</div>
@@ -368,14 +354,14 @@ export default function Deposit() {
                 {/* Transaction Code Input */}
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-base font-bold mb-2 block">NCBA Transaction Code</Label>
-                    <p className="text-xs text-muted-foreground">NCBA sends this code via SMS after your transaction</p>
+                    <Label className="text-base font-bold mb-2 block">Safaricom Transaction Code</Label>
+                    <p className="text-xs text-muted-foreground">Safaricom sends this code via SMS after your transaction</p>
                   </div>
                   <Input 
                     type="text"
                     value={transactionCode}
                     onChange={(e) => setTransactionCode(e.target.value.toUpperCase())}
-                    placeholder="Enter 6+ character code" 
+                    placeholder="Enter 10+ character code" 
                     className="text-xl h-14 font-mono tracking-wider border-2 border-primary/30 bg-background/50 focus:border-primary"
                     disabled={loading || verified}
                     maxLength={20}
@@ -404,10 +390,10 @@ export default function Deposit() {
             {/* Deposit Button */}
             <Button 
               onClick={verifyDeposit}
-              disabled={loading || !transactionCode || verified || selectedMethod !== "ncba"}
+              disabled={loading || !transactionCode || verified || selectedMethod !== "safaricom"}
               className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 disabled:opacity-50"
             >
-              {loading ? "🔍 Verifying with NCBA..." : verified ? "✓ Verified & Credited!" : "Verify Transaction & Deposit"}
+              {loading ? "🔍 Verifying with Safaricom..." : verified ? "✓ Verified & Credited!" : "Verify Transaction & Deposit"}
             </Button>
 
             {/* Security Note */}
@@ -415,7 +401,7 @@ export default function Deposit() {
               <Shield className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-bold text-green-400 mb-1">🔒 Verified & Secure</p>
-                <p className="text-xs text-green-400/80">We verify every transaction with NCBA Bank before crediting your account. Your funds are protected by bank-level encryption.</p>
+                <p className="text-xs text-green-400/80">We verify every transaction with Safaricom before crediting your account. Your funds are protected by bank-level encryption.</p>
               </div>
             </div>
           </div>
@@ -449,7 +435,7 @@ export default function Deposit() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-bold mb-2">How long does it take?</h4>
-              <p className="text-sm text-muted-foreground">Deposits are verified and credited instantly after we confirm the transaction with NCBA Bank.</p>
+              <p className="text-sm text-muted-foreground">Deposits are verified and credited instantly after we confirm the transaction with Safaricom.</p>
             </div>
             <div>
               <h4 className="font-bold mb-2">Is there a minimum deposit?</h4>
@@ -457,11 +443,11 @@ export default function Deposit() {
             </div>
             <div>
               <h4 className="font-bold mb-2">Are there fees?</h4>
-              <p className="text-sm text-muted-foreground">No! We charge zero fees on deposits. NCBA Bank handles M-Pesa charges.</p>
+              <p className="text-sm text-muted-foreground">No! We charge zero fees on deposits. M-Pesa charges are handled by Safaricom.</p>
             </div>
             <div>
               <h4 className="font-bold mb-2">How do I verify my deposit?</h4>
-              <p className="text-sm text-muted-foreground">NCBA sends you an SMS confirmation code. Enter it above and we verify with the bank instantly.</p>
+              <p className="text-sm text-muted-foreground">Safaricom sends you an SMS confirmation code. Enter it above and we verify with the bank instantly.</p>
             </div>
           </div>
         </Card>

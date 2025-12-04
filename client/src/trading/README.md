@@ -1,0 +1,1 @@
+This directory contains all the trading-related components and logic.

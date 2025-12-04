@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertTradeSchema, insertDepositSchema, insertWithdrawalSchema } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { verifyTransaction } from "./daraja";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // User endpoints
@@ -138,6 +139,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/withdrawals/:userId", async (req, res) => {
     const withdrawals = await storage.getUserWithdrawals(req.params.userId);
     res.json(withdrawals);
+  });
+
+  // Safaricom Daraja Verification Endpoint
+  app.post("/api/verify-transaction", async (req, res) => {
+    try {
+      const { transactionCode } = req.body;
+      if (!transactionCode) {
+        return res.status(400).json({ error: "Transaction code is required." });
+      }
+
+      const result = await verifyTransaction(transactionCode);
+
+      if (result.success) {
+        // Here you would typically link the transaction to a user deposit
+        // and update their balance after successful verification.
+        // For now, we'''ll just return the success message.
+        return res.status(200).json(result);
+      } else {
+        return res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error("Verification endpoint error:", error);
+      return res.status(500).json({ error: "Internal server error." });
+    }
   });
 
   const httpServer = createServer(app);

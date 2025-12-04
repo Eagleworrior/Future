@@ -14,8 +14,5 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "expert trading"
-
-dependencies {
-    implementation 'com.google.android.gms:play-services-ads:23.x.x' // Check for the latest version
-}
+rootProject.name = "My Application"
+include(":app")

@@ -1,0 +1,32 @@
+MobileAds.initialize(this, new OnInitializationCompleteListener() {
+    @Override
+    public void onInitializationComplete(InitializationStatus initializationStatus) {}
+});
+// It is recommended to call AdLoader.Builder on a background thread.
+new Thread(
+        () -> {
+        // It is recommended to call AdLoader.Builder on a background thread.
+        new Thread(
+                () -> {
+                // It is recommended to call AdLoader.Builder on a background thread.
+                new Thread(
+                        () -> {
+                        AdLoader adLoader =
+                        new AdLoader.Builder(context, "AD_UNIT_ID")ca-app-pub-3715923077671486/4284910698s
+                        .forNativeAd(
+                        new NativeAd.OnNativeAdLoadedListener() {
+                          @Override
+                          // The native ad loaded successfully. You can show the ad.
+                          public void onNativeAdLoaded(@NonNull NativeAd nativeAd) {}
+                        })
+                        .withAdListener(
+                        new AdListener() {
+                          @Override
+                          // The native ad load failed. Check the adError message for failure
+                          // reasons.
+                          public void onAdFailedToLoad(@NonNull LoadAdError adError) {}
+                        })
+                        // Use the NativeAdOptions.Builder class to specify individual options
+                        // settings.
+                        .withNativeAdOptions(new NativeAdOptions.Builder().build())
+                        
