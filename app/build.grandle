@@ -1,0 +1,13 @@
+dependencies {
+    implementation 'com.google.android.gms:play-services-ads:23.0.0' // Use the latest version
+}    implementation 'com.google.android.gms:play-services-ads:+'
+MobileAds.initialize(this, new OnInitializationCompleteListener() {
+    @Override
+    public void onInitializationComplete(InitializationStatus initializationStatus) {}
+});
+
+<meta-data
+android:name="com.google.android.gms.ads.APPLICATION_ID"
+android:value="ca-app-pub-3715923077671486~1850319041"/>
+    implementation 'com.google.android.gms:play-services-ads:+'
+}
